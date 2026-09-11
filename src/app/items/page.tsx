@@ -155,10 +155,10 @@ function ItemsDirectoryContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#231F20]">
             Lost & Found Directory
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-xs sm:text-sm text-[#64748B]">
             Search, filter, and discover reported items across all campus locations.
           </p>
         </div>

@@ -140,10 +140,10 @@ export default function ReportFoundPage() {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 mb-4">
           <Lock className="h-7 w-7" />
         </div>
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-white">
+        <h2 className="text-xl font-bold text-[#231F20]">
           Sign In Required to Report
         </h2>
-        <p className="mt-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-xs sm:text-sm text-[#64748B]">
           To maintain accountability in the database, you must be logged in as a registered user or student to submit a found item report.
         </p>
         <div className="mt-6 flex justify-center gap-3">
