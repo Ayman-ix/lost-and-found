@@ -22,7 +22,7 @@ export default function Footer() {
             </p>
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3.5 py-1 text-[11px] text-zinc-300">
               <Database className="h-3.5 w-3.5 text-[#D3632D]" />
-              <span>PostgreSQL Relational Database System</span>
+              <span>MySQL Relational Database System</span>
             </div>
           </div>
 

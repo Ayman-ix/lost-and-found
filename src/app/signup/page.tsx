@@ -208,7 +208,7 @@ export default function SignupPage() {
           <div className="mt-6 border-t border-[#ECECEC] pt-4">
             <div className="flex items-center gap-2 text-[11px] text-[#64748B]">
               <CheckCircle2 className="h-3.5 w-3.5 text-[#D3632D]" />
-              <span>Inserts a normalized record into PostgreSQL <code>user</code> table.</span>
+              <span>Inserts a normalized record into MySQL <code>user</code> table.</span>
             </div>
           </div>
         </div>

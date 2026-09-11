@@ -334,7 +334,7 @@ export default function ItemDetailPage({
                 Rule-Based Potential Matches ({matches.length})
               </h2>
               <p className="text-[11px] text-[#64748B]">
-                Resolved via PostgreSQL <code>potential_match</code> table (M:N bridge)
+                Resolved via MySQL <code>potential_match</code> table (M:N bridge)
               </p>
             </div>
           </div>
