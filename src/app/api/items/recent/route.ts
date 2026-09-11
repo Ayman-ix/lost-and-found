@@ -1,54 +1,53 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query } from '@/lib/db';
 
 export async function GET() {
   try {
-    // 1. Fetch recent lost items (with category & location)
-    const { data: lostItems, error: lostErr } = await supabaseAdmin
-      .from('lost_item')
-      .select(`
-        lost_item_id,
-        item_name,
-        description,
-        brand,
-        color,
-        date_lost,
-        status,
-        created_at,
-        category:category(category_name),
-        location:location(location_name, city),
-        images:item_image(image_url)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(4);
+    // 1. Fetch recent lost items (limit 4)
+    const lostRows = await query<any>(`
+      SELECT 
+        l.lost_item_id,
+        l.item_name,
+        l.description,
+        l.brand,
+        l.color,
+        l.date_lost,
+        l.status,
+        l.created_at,
+        c.category_name,
+        loc.location_name,
+        loc.city AS location_city,
+        (SELECT image_url FROM item_image WHERE lost_item_id = l.lost_item_id LIMIT 1) AS image_url
+      FROM lost_item l
+      LEFT JOIN category c ON l.category_id = c.category_id
+      LEFT JOIN location loc ON l.location_id = loc.location_id
+      ORDER BY l.created_at DESC
+      LIMIT 4
+    `);
 
-    // 2. Fetch recent found items (with category & location)
-    const { data: foundItems, error: foundErr } = await supabaseAdmin
-      .from('found_item')
-      .select(`
-        found_item_id,
-        item_name,
-        description,
-        brand,
-        color,
-        date_found,
-        status,
-        created_at,
-        category:category(category_name),
-        location:location(location_name, city),
-        images:item_image(image_url)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(4);
+    // 2. Fetch recent found items (limit 4)
+    const foundRows = await query<any>(`
+      SELECT 
+        f.found_item_id,
+        f.item_name,
+        f.description,
+        f.brand,
+        f.color,
+        f.date_found,
+        f.status,
+        f.created_at,
+        c.category_name,
+        loc.location_name,
+        loc.city AS location_city,
+        (SELECT image_url FROM item_image WHERE found_item_id = f.found_item_id LIMIT 1) AS image_url
+      FROM found_item f
+      LEFT JOIN category c ON f.category_id = c.category_id
+      LEFT JOIN location loc ON f.location_id = loc.location_id
+      ORDER BY f.created_at DESC
+      LIMIT 4
+    `);
 
-    if (lostErr || foundErr) {
-      return NextResponse.json(
-        { error: lostErr?.message || foundErr?.message },
-        { status: 500 }
-      );
-    }
-
-    const formattedLost = (lostItems || []).map((item) => ({
+    const formattedLost = lostRows.map((item) => ({
       id: item.lost_item_id,
       type: 'lost' as const,
       name: item.item_name,
@@ -58,12 +57,12 @@ export async function GET() {
       date: item.date_lost,
       status: item.status,
       createdAt: item.created_at,
-      category: (item.category as unknown as { category_name: string })?.category_name || 'General',
-      location: (item.location as unknown as { location_name: string; city: string })?.location_name || 'Campus',
-      imageUrl: item.images && item.images.length > 0 ? item.images[0].image_url : null,
+      category: item.category_name || 'General',
+      location: item.location_name || 'Campus',
+      imageUrl: item.image_url || null,
     }));
 
-    const formattedFound = (foundItems || []).map((item) => ({
+    const formattedFound = foundRows.map((item) => ({
       id: item.found_item_id,
       type: 'found' as const,
       name: item.item_name,
@@ -73,9 +72,9 @@ export async function GET() {
       date: item.date_found,
       status: item.status,
       createdAt: item.created_at,
-      category: (item.category as unknown as { category_name: string })?.category_name || 'General',
-      location: (item.location as unknown as { location_name: string; city: string })?.location_name || 'Campus',
-      imageUrl: item.images && item.images.length > 0 ? item.images[0].image_url : null,
+      category: item.category_name || 'General',
+      location: item.location_name || 'Campus',
+      imageUrl: item.image_url || null,
     }));
 
     return NextResponse.json({

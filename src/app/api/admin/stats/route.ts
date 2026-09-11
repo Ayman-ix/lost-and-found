@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { queryOne } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
 export async function GET() {
@@ -17,21 +17,21 @@ export async function GET() {
       pendingMatchesCount,
       verificationsCount,
     ] = await Promise.all([
-      supabaseAdmin.from('user').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('lost_item').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('found_item').select('*', { count: 'exact', head: true }),
-      supabaseAdmin.from('claim').select('*', { count: 'exact', head: true }).eq('status', 'Pending'),
-      supabaseAdmin.from('potential_match').select('*', { count: 'exact', head: true }).eq('match_status', 'Pending'),
-      supabaseAdmin.from('verification').select('*', { count: 'exact', head: true }),
+      queryOne<any>('SELECT COUNT(*) as count FROM `user`'),
+      queryOne<any>('SELECT COUNT(*) as count FROM lost_item'),
+      queryOne<any>('SELECT COUNT(*) as count FROM found_item'),
+      queryOne<any>("SELECT COUNT(*) as count FROM claim WHERE status = 'Pending'"),
+      queryOne<any>("SELECT COUNT(*) as count FROM potential_match WHERE match_status = 'Pending'"),
+      queryOne<any>('SELECT COUNT(*) as count FROM verification'),
     ]);
 
     return NextResponse.json({
-      totalUsers: usersCount.count || 0,
-      totalLost: lostCount.count || 0,
-      totalFound: foundCount.count || 0,
-      pendingClaims: pendingClaimsCount.count || 0,
-      pendingMatches: pendingMatchesCount.count || 0,
-      totalVerifications: verificationsCount.count || 0,
+      totalUsers: Number(usersCount?.count || 0),
+      totalLost: Number(lostCount?.count || 0),
+      totalFound: Number(foundCount?.count || 0),
+      pendingClaims: Number(pendingClaimsCount?.count || 0),
+      pendingMatches: Number(pendingMatchesCount?.count || 0),
+      totalVerifications: Number(verificationsCount?.count || 0),
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error retrieving admin stats';

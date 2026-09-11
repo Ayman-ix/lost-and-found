@@ -58,7 +58,7 @@ export default function MyItemsPage() {
         <p className="mt-1 text-xs text-zinc-500">Please sign in to view your reported items.</p>
         <Link
           href="/login"
-          className="mt-6 inline-block rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white"
+          className="mt-6 inline-block rounded-xl bg-[#D3632D] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#BA4F1D] shadow-sm transition"
         >
           Sign In
         </Link>
@@ -136,7 +136,7 @@ export default function MyItemsPage() {
           <div className="mt-4">
             <Link
               href={activeTab === 'lost' ? '/report-lost' : '/report-found'}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#D3632D] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#BA4F1D] shadow-sm transition"
             >
               Report {activeTab === 'lost' ? 'Lost Item' : 'Found Item'}
             </Link>
@@ -147,33 +147,33 @@ export default function MyItemsPage() {
           {currentList.map((item) => (
             <div
               key={item.id}
-              className="flex flex-col justify-between rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+              className="flex flex-col justify-between rounded-2xl border border-[#ECECEC] bg-white p-5 shadow-sm transition hover:shadow-md hover:border-[#D3632D]/40"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="rounded-md bg-blue-100 dark:bg-blue-950 px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:text-blue-300">
+                  <span className="rounded-md bg-[#FFF4ED] border border-[#FFD8C2] px-2 py-0.5 text-[10px] font-bold text-[#D3632D]">
                     {item.category}
                   </span>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                       item.status === 'Matched'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                        ? 'bg-[#FFF4ED] text-[#D3632D] border border-[#FFD8C2]'
                         : item.status === 'Found' || item.status === 'Returned'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                        : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-zinc-100 text-zinc-700'
                     }`}
                   >
                     {item.status}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{item.name}</h3>
-                <p className="mt-1 text-xs text-zinc-500">
+                <h3 className="font-bold text-sm text-[#231F20]">{item.name}</h3>
+                <p className="mt-1 text-xs text-[#64748B]">
                   {item.brand ? `Brand: ${item.brand} • ` : ''}
                   {item.color ? `Color: ${item.color}` : ''}
                 </p>
 
-                <div className="mt-3 space-y-1 text-xs text-zinc-500">
+                <div className="mt-3 space-y-1 text-xs text-[#64748B]">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5 text-zinc-400" />
                     <span>{item.location}</span>
@@ -185,10 +185,10 @@ export default function MyItemsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="mt-5 pt-3 border-t border-[#ECECEC]">
                 <Link
                   href={`/item/${item.type}-${item.id}`}
-                  className="flex items-center justify-between text-xs font-semibold text-blue-600 hover:text-blue-700"
+                  className="flex items-center justify-between text-xs font-bold text-[#D3632D] hover:text-[#BA4F1D]"
                 >
                   <span>View Details & Matches</span>
                   <ArrowRight className="h-3.5 w-3.5" />

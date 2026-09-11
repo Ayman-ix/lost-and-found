@@ -166,7 +166,7 @@ export default function AdminItemsPage() {
                     <td className="py-3 px-4">
                       <Link
                         href={`/item/${item.type}-${item.id}`}
-                        className="text-blue-600 hover:text-blue-500 inline-flex items-center gap-1 font-semibold"
+                        className="text-[#D3632D] hover:text-[#BA4F1D] inline-flex items-center gap-1 font-semibold"
                       >
                         <span>Inspect</span>
                         <ExternalLink className="h-3 w-3" />

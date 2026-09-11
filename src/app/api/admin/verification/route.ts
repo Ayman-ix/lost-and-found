@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { queryOne, execute } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
 export async function POST(request: Request) {
@@ -20,57 +20,42 @@ export async function POST(request: Request) {
     }
 
     // 1. Fetch the claim details
-    const { data: claim, error: claimErr } = await supabaseAdmin
-      .from('claim')
-      .select('claim_id, user_id, found_item_id, status, found_item:found_item(item_name)')
-      .eq('claim_id', claimId)
-      .single();
+    const claim = await queryOne<any>(
+      `SELECT c.claim_id, c.user_id, c.found_item_id, c.status, f.item_name
+       FROM claim c
+       JOIN found_item f ON c.found_item_id = f.found_item_id
+       WHERE c.claim_id = ?`,
+      [claimId]
+    );
 
-    if (claimErr || !claim) {
+    if (!claim) {
       return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
     }
 
-    // 2. Insert into VERIFICATION table (1:1 with claim)
-    const { data: verification, error: verErr } = await supabaseAdmin
-      .from('verification')
-      .upsert(
-        [
-          {
-            claim_id: claimId,
-            admin_id: session.userId,
-            remarks: remarks?.trim() || null,
-            status,
-            verification_date: new Date().toISOString(),
-          },
-        ],
-        { onConflict: 'claim_id' }
-      )
-      .select()
-      .single();
-
-    if (verErr || !verification) {
-      return NextResponse.json(
-        { error: verErr?.message || 'Failed to record verification' },
-        { status: 500 }
-      );
-    }
+    // 2. Insert or update VERIFICATION table (1:1 with claim)
+    await execute(
+      `INSERT INTO verification (claim_id, admin_id, remarks, status, verification_date)
+       VALUES (?, ?, ?, ?, NOW())
+       ON DUPLICATE KEY UPDATE 
+         admin_id = VALUES(admin_id),
+         remarks = VALUES(remarks),
+         status = VALUES(status),
+         verification_date = NOW()`,
+      [claimId, session.userId, remarks?.trim() || null, status]
+    );
 
     // 3. Update CLAIM status
-    await supabaseAdmin
-      .from('claim')
-      .update({ status })
-      .eq('claim_id', claimId);
+    await execute('UPDATE claim SET status = ? WHERE claim_id = ?', [status, claimId]);
 
     // 4. If approved, update FOUND_ITEM status to 'Returned'
     if (status === 'Approved') {
-      await supabaseAdmin
-        .from('found_item')
-        .update({ status: 'Returned' })
-        .eq('found_item_id', claim.found_item_id);
+      await execute("UPDATE found_item SET status = 'Returned' WHERE found_item_id = ?", [
+        claim.found_item_id,
+      ]);
     }
 
     // 5. Notify the claimant
-    const itemName = (claim.found_item as any)?.item_name || 'claimed item';
+    const itemName = claim.item_name || 'claimed item';
     const notifMessage =
       status === 'Approved'
         ? `Congratulations! Your ownership claim for "${itemName}" has been APPROVED. Remarks: ${
@@ -80,17 +65,13 @@ export async function POST(request: Request) {
             remarks || 'Insufficient proof provided.'
           }`;
 
-    await supabaseAdmin.from('notification').insert([
-      {
-        user_id: claim.user_id,
-        message: notifMessage,
-        status: 'Unread',
-      },
-    ]);
+    await execute(
+      'INSERT INTO notification (user_id, message, status) VALUES (?, ?, ?)',
+      [claim.user_id, notifMessage, 'Unread']
+    );
 
     return NextResponse.json({
       success: true,
-      verification,
       message: `Claim #${claimId} has been successfully ${status.toLowerCase()}.`,
     });
   } catch (err: unknown) {

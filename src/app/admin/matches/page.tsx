@@ -117,7 +117,7 @@ export default function AdminMatchesPage() {
                   <span className="font-bold text-sm text-zinc-900 dark:text-white">
                     Match #{m.match_id}
                   </span>
-                  <span className="rounded-full bg-blue-100 dark:bg-blue-950 px-2.5 py-0.5 text-xs font-extrabold text-blue-700 dark:text-blue-300">
+                  <span className="rounded-full bg-[#FFF4ED] dark:bg-[#D3632D]/20 px-2.5 py-0.5 text-xs font-extrabold text-[#D3632D]">
                     {m.match_score} / 100 Score
                   </span>
                 </div>
@@ -166,7 +166,7 @@ export default function AdminMatchesPage() {
                   <p className="text-zinc-500">Reported by: {m.lost_item?.user?.name}</p>
                   <Link
                     href={`/item/lost-${m.lost_item?.lost_item_id}`}
-                    className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-500 pt-1"
+                    className="inline-flex items-center gap-1 font-semibold text-[#D3632D] hover:text-[#BA4F1D] pt-1"
                   >
                     <span>View item</span>
                     <ExternalLink className="h-3 w-3" />
@@ -185,7 +185,7 @@ export default function AdminMatchesPage() {
                   <p className="text-zinc-500">Reported by: {m.found_item?.user?.name}</p>
                   <Link
                     href={`/item/found-${m.found_item?.found_item_id}`}
-                    className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-500 pt-1"
+                    className="inline-flex items-center gap-1 font-semibold text-[#D3632D] hover:text-[#BA4F1D] pt-1"
                   >
                     <span>View item</span>
                     <ExternalLink className="h-3 w-3" />

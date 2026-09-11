@@ -1,40 +1,25 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { queryOne } from '@/lib/db';
 
 export async function GET() {
   try {
-    // Total lost items
-    const { count: totalLost } = await supabaseAdmin
-      .from('lost_item')
-      .select('*', { count: 'exact', head: true });
+    const totalLostRow = await queryOne<any>('SELECT COUNT(*) as count FROM lost_item');
+    const totalFoundRow = await queryOne<any>('SELECT COUNT(*) as count FROM found_item');
+    const returnedLostRow = await queryOne<any>("SELECT COUNT(*) as count FROM lost_item WHERE status = 'Returned'");
+    const returnedFoundRow = await queryOne<any>("SELECT COUNT(*) as count FROM found_item WHERE status = 'Returned'");
+    const verifiedClaimsRow = await queryOne<any>("SELECT COUNT(*) as count FROM verification WHERE status = 'Approved'");
 
-    // Total found items
-    const { count: totalFound } = await supabaseAdmin
-      .from('found_item')
-      .select('*', { count: 'exact', head: true });
-
-    // Resolved / Returned items
-    const { count: returnedLost } = await supabaseAdmin
-      .from('lost_item')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'Returned');
-
-    const { count: returnedFound } = await supabaseAdmin
-      .from('found_item')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'Returned');
-
-    // Total verified claims
-    const { count: verifiedClaims } = await supabaseAdmin
-      .from('verification')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'Approved');
+    const totalLost = Number(totalLostRow?.count || 0);
+    const totalFound = Number(totalFoundRow?.count || 0);
+    const returnedLost = Number(returnedLostRow?.count || 0);
+    const returnedFound = Number(returnedFoundRow?.count || 0);
+    const verifiedClaims = Number(verifiedClaimsRow?.count || 0);
 
     return NextResponse.json({
-      totalLost: totalLost || 0,
-      totalFound: totalFound || 0,
-      totalResolved: (returnedLost || 0) + (returnedFound || 0) + (verifiedClaims || 0),
-      totalItems: (totalLost || 0) + (totalFound || 0),
+      totalLost,
+      totalFound,
+      totalResolved: returnedLost + returnedFound + verifiedClaims,
+      totalItems: totalLost + totalFound,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to fetch stats';

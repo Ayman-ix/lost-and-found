@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query, execute } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
 export async function GET() {
@@ -9,63 +9,83 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const [lostRes, foundRes] = await Promise.all([
-      supabaseAdmin
-        .from('lost_item')
-        .select(`
-          lost_item_id,
-          item_name,
-          brand,
-          color,
-          date_lost,
-          status,
-          created_at,
-          user:user(user_id, name, email),
-          category:category(category_name),
-          location:location(location_name)
-        `)
-        .order('created_at', { ascending: false }),
-      supabaseAdmin
-        .from('found_item')
-        .select(`
-          found_item_id,
-          item_name,
-          brand,
-          color,
-          date_found,
-          status,
-          created_at,
-          user:user(user_id, name, email),
-          category:category(category_name),
-          location:location(location_name)
-        `)
-        .order('created_at', { ascending: false }),
+    const [lostRows, foundRows] = await Promise.all([
+      query<any>(`
+        SELECT 
+          l.lost_item_id AS id,
+          'lost' AS type,
+          l.item_name AS name,
+          l.brand,
+          l.color,
+          l.date_lost AS date,
+          l.status,
+          l.created_at,
+          u.user_id,
+          u.name AS user_name,
+          u.email AS user_email,
+          c.category_name AS category,
+          loc.location_name AS location
+        FROM lost_item l
+        LEFT JOIN \`user\` u ON l.user_id = u.user_id
+        LEFT JOIN category c ON l.category_id = c.category_id
+        LEFT JOIN location loc ON l.location_id = loc.location_id
+        ORDER BY l.created_at DESC
+      `),
+      query<any>(`
+        SELECT 
+          f.found_item_id AS id,
+          'found' AS type,
+          f.item_name AS name,
+          f.brand,
+          f.color,
+          f.date_found AS date,
+          f.status,
+          f.created_at,
+          u.user_id,
+          u.name AS user_name,
+          u.email AS user_email,
+          c.category_name AS category,
+          loc.location_name AS location
+        FROM found_item f
+        LEFT JOIN \`user\` u ON f.user_id = u.user_id
+        LEFT JOIN category c ON f.category_id = c.category_id
+        LEFT JOIN location loc ON f.location_id = loc.location_id
+        ORDER BY f.created_at DESC
+      `),
     ]);
 
-    const lostItems = (lostRes.data || []).map((i) => ({
-      id: i.lost_item_id,
+    const lostItems = lostRows.map((i) => ({
+      id: i.id,
       type: 'lost' as const,
-      name: i.item_name,
+      name: i.name,
       brand: i.brand,
       color: i.color,
-      date: i.date_lost,
+      date: i.date,
       status: i.status,
-      user: i.user,
-      category: (i.category as any)?.category_name,
-      location: (i.location as any)?.location_name,
+      user: {
+        user_id: i.user_id,
+        name: i.user_name,
+        email: i.user_email,
+      },
+      category: i.category,
+      location: i.location,
     }));
 
-    const foundItems = (foundRes.data || []).map((i) => ({
-      id: i.found_item_id,
+    const foundItems = foundRows.map((i) => ({
+      id: i.id,
       type: 'found' as const,
-      name: i.item_name,
+      name: i.name,
       brand: i.brand,
       color: i.color,
-      date: i.date_found,
+      date: i.date,
       status: i.status,
-      user: i.user,
-      category: (i.category as any)?.category_name,
-      location: (i.location as any)?.location_name,
+      user: {
+        user_id: i.user_id,
+        name: i.user_name,
+        email: i.user_email,
+      },
+      category: i.category,
+      location: i.location,
     }));
 
     return NextResponse.json({
@@ -93,16 +113,10 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Missing id, type, or status' }, { status: 400 });
     }
 
-    const table = type === 'lost' ? 'lost_item' : 'found_item';
-    const idField = type === 'lost' ? 'lost_item_id' : 'found_item_id';
-
-    const { error } = await supabaseAdmin
-      .from(table)
-      .update({ status })
-      .eq(idField, id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (type === 'lost') {
+      await execute('UPDATE lost_item SET status = ? WHERE lost_item_id = ?', [status, id]);
+    } else {
+      await execute('UPDATE found_item SET status = ? WHERE found_item_id = ?', [status, id]);
     }
 
     return NextResponse.json({ success: true, message: `Status updated to ${status}` });

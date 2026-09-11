@@ -170,7 +170,7 @@ export default function ItemDetailPage({
         </p>
         <Link
           href="/items"
-          className="mt-6 inline-block rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white"
+          className="mt-6 inline-block rounded-xl bg-[#D3632D] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#BA4F1D] shadow-sm transition"
         >
           Return to Directory
         </Link>
@@ -235,39 +235,39 @@ export default function ItemDetailPage({
         <div className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div>
-              <span className="inline-block rounded-md bg-blue-100 dark:bg-blue-950 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
+              <span className="inline-block rounded-md bg-[#FFF4ED] border border-[#FFD8C2] px-3 py-1 text-xs font-bold text-[#D3632D]">
                 {item.category?.category_name}
               </span>
-              <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white">
+              <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#231F20]">
                 {item.item_name}
               </h1>
             </div>
 
             {/* Structured Specs Table */}
-            <div className="grid grid-cols-2 gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 text-xs">
+            <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[#ECECEC] bg-white p-4 text-xs">
               <div>
-                <span className="text-zinc-400 block text-[11px]">Brand / Manufacturer</span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                <span className="text-[#64748B] block text-[11px]">Brand / Manufacturer</span>
+                <span className="font-semibold text-[#231F20]">
                   {item.brand || 'Unspecified'}
                 </span>
               </div>
               <div>
-                <span className="text-zinc-400 block text-[11px]">Color</span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                <span className="text-[#64748B] block text-[11px]">Color</span>
+                <span className="font-semibold text-[#231F20]">
                   {item.color || 'Unspecified'}
                 </span>
               </div>
               <div>
-                <span className="text-zinc-400 block text-[11px]">Location</span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                <span className="text-[#64748B] block text-[11px]">Location</span>
+                <span className="font-semibold text-[#231F20]">
                   {item.location?.location_name} ({item.location?.city})
                 </span>
               </div>
               <div>
-                <span className="text-zinc-400 block text-[11px]">
+                <span className="text-[#64748B] block text-[11px]">
                   {itemType === 'lost' ? 'Date Lost' : 'Date Found'}
                 </span>
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                <span className="font-semibold text-[#231F20]">
                   {itemType === 'lost' ? item.date_lost : item.date_found}
                 </span>
               </div>
@@ -275,35 +275,35 @@ export default function ItemDetailPage({
 
             {/* Description */}
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
-                Description & Custody Details
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#64748B] mb-1">
+                Description &amp; Custody Details
               </h3>
-              <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <p className="text-xs sm:text-sm text-[#231F20] leading-relaxed bg-white p-4 rounded-xl border border-[#ECECEC]">
                 {item.description || 'No detailed description provided by reporter.'}
               </p>
             </div>
 
             {/* Reported By Info */}
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <div className="flex items-center gap-2 text-xs text-[#64748B]">
               <User className="h-4 w-4 text-zinc-400" />
-              <span>Reported by: <strong className="text-zinc-700 dark:text-zinc-300">{item.user?.name}</strong></span>
+              <span>Reported by: <strong className="text-[#231F20]">{item.user?.name}</strong></span>
               <span>•</span>
               <span>{new Date(item.created_at).toLocaleDateString()}</span>
             </div>
           </div>
 
           {/* Action Bar */}
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+          <div className="pt-4 border-t border-[#ECECEC] space-y-3">
             {itemType === 'found' && (
               <div>
                 {isReporter ? (
-                  <div className="rounded-xl bg-zinc-100 p-3 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 text-center">
+                  <div className="rounded-xl bg-[#F8F9FA] border border-[#ECECEC] p-3 text-xs text-[#64748B] text-center">
                     You reported this found item.
                   </div>
                 ) : user ? (
                   <button
                     onClick={() => setClaimModalOpen(true)}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-md shadow-blue-500/25 hover:bg-blue-700 transition active:scale-[0.99]"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#D3632D] py-3.5 text-sm font-bold uppercase tracking-wider text-white shadow-md shadow-[#D3632D]/25 hover:bg-[#BA4F1D] transition active:scale-[0.99]"
                   >
                     <FileCheck className="h-4 w-4" />
                     This Might Be Mine (Submit Claim)
@@ -311,7 +311,7 @@ export default function ItemDetailPage({
                 ) : (
                   <Link
                     href="/login"
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#231F20] py-3.5 text-sm font-bold uppercase tracking-wider text-white hover:bg-black transition"
                   >
                     Sign in to Claim This Item
                   </Link>
@@ -323,17 +323,17 @@ export default function ItemDetailPage({
       </div>
 
       {/* POTENTIAL MATCHES SECTION (M:N RESOLUTION DEMONSTRATION) */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
+      <section className="rounded-2xl border border-[#ECECEC] bg-white p-6 sm:p-8 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF4ED] text-[#D3632D] border border-[#FFD8C2]">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-zinc-900 dark:text-white">
+              <h2 className="text-base font-bold text-[#231F20]">
                 Rule-Based Potential Matches ({matches.length})
               </h2>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              <p className="text-[11px] text-[#64748B]">
                 Resolved via PostgreSQL <code>potential_match</code> table (M:N bridge)
               </p>
             </div>
@@ -341,7 +341,7 @@ export default function ItemDetailPage({
         </div>
 
         {matches.length === 0 ? (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 py-2">
+          <p className="text-xs text-[#64748B] py-2">
             No active candidates scored above the 40-point threshold for this item yet. As new reports are submitted, potential matches will be auto-calculated.
           </p>
         ) : (
@@ -358,25 +358,25 @@ export default function ItemDetailPage({
               return (
                 <div
                   key={m.match_id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-200 p-4 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-900 transition"
+                  className="flex items-center justify-between rounded-xl border border-[#ECECEC] p-4 hover:border-[#D3632D]/40 transition"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-zinc-900 dark:text-white">
+                      <span className="font-bold text-xs text-[#231F20]">
                         {counterpart.item_name}
                       </span>
-                      <span className="rounded bg-blue-100 dark:bg-blue-900/60 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                      <span className="rounded bg-[#FFF4ED] border border-[#FFD8C2] px-1.5 py-0.5 text-[10px] font-bold text-[#D3632D]">
                         {m.match_score}% Match
                       </span>
                     </div>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-[11px] text-[#64748B]">
                       {counterpart.brand || 'No brand'} • {counterpart.color || 'No color'} • {counterpart.location?.location_name}
                     </p>
                   </div>
 
                   <Link
                     href={`/item/${counterpartType}-${counterpartId}`}
-                    className="inline-flex items-center gap-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 transition"
+                    className="inline-flex items-center gap-1 rounded-lg bg-[#FFF4ED] hover:bg-[#FFE8D6] text-[#D3632D] border border-[#FFD8C2] px-3 py-1.5 text-xs font-bold transition"
                   >
                     <span>Inspect</span>
                     <ExternalLink className="h-3 w-3" />
@@ -391,26 +391,26 @@ export default function ItemDetailPage({
       {/* CLAIM SUBMISSION MODAL */}
       {claimModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 space-y-5">
-            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+          <div className="w-full max-w-lg rounded-2xl border border-[#ECECEC] bg-white p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-[#ECECEC] pb-3">
               <div className="flex items-center gap-2">
-                <FileCheck className="h-5 w-5 text-blue-600" />
-                <h3 className="font-bold text-base text-zinc-900 dark:text-white">
+                <FileCheck className="h-5 w-5 text-[#D3632D]" />
+                <h3 className="font-bold text-base text-[#231F20]">
                   Ownership Verification Claim
                 </h3>
               </div>
               <button
                 onClick={() => setClaimModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                className="text-[#64748B] hover:text-[#231F20]"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              <p className="text-xs text-[#64748B]">
                 You are submitting a claim for:{' '}
-                <strong className="text-zinc-900 dark:text-white">{item.item_name}</strong>
+                <strong className="text-[#231F20]">{item.item_name}</strong>
               </p>
             </div>
 
@@ -418,8 +418,8 @@ export default function ItemDetailPage({
               <div
                 className={`flex items-start gap-2 rounded-xl p-3 text-xs ${
                   claimStatus.type === 'success'
-                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300'
-                    : 'border border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300'
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border border-red-200 bg-red-50 text-red-800'
                 }`}
               >
                 {claimStatus.type === 'success' ? (
@@ -433,7 +433,7 @@ export default function ItemDetailPage({
 
             <form onSubmit={handleClaimSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                <label className="block text-xs font-semibold text-[#231F20] mb-1.5">
                   Proof of Ownership / Distinctive Identifiers <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -442,11 +442,11 @@ export default function ItemDetailPage({
                   value={proofText}
                   onChange={(e) => setProofText(e.target.value)}
                   placeholder="Describe unique details only the owner would know: serial number, lock screen wallpaper, stickers, scratches, contents inside, purchase receipt info..."
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 p-3 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-white"
+                  className="w-full rounded-xl border border-[#ECECEC] bg-[#F8F9FA] p-3 text-xs sm:text-sm text-[#231F20] placeholder:text-zinc-400 focus:border-[#D3632D] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
                 />
               </div>
 
-              <div className="rounded-xl bg-blue-50/60 p-3 text-[11px] text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+              <div className="rounded-xl border border-[#FFD8C2] bg-[#FFF4ED] p-3 text-[11px] text-[#BA4F1D]">
                 <strong>DBMS Note:</strong> Creates a row in <code>claim</code> table (status: <code>Pending</code>) awaiting administrator verification.
               </div>
 
@@ -454,14 +454,14 @@ export default function ItemDetailPage({
                 <button
                   type="button"
                   onClick={() => setClaimModalOpen(false)}
-                  className="rounded-xl px-4 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                  className="rounded-xl px-4 py-2 text-xs font-semibold text-[#64748B] hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={claimSubmitting}
-                  className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#D3632D] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm shadow-[#D3632D]/25 hover:bg-[#BA4F1D] disabled:opacity-50 transition"
                 >
                   {claimSubmitting ? (
                     'Submitting...'

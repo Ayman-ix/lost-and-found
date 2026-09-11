@@ -65,7 +65,7 @@ export default function MyClaimsPage() {
         <p className="mt-1 text-xs text-zinc-500">Please sign in to view your claims.</p>
         <Link
           href="/login"
-          className="mt-6 inline-block rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-semibold text-white"
+          className="mt-6 inline-block rounded-xl bg-[#D3632D] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#BA4F1D] shadow-sm transition"
         >
           Sign In
         </Link>
@@ -107,15 +107,15 @@ export default function MyClaimsPage() {
           {claims.map((claim) => (
             <div
               key={claim.claim_id}
-              className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 space-y-4"
+              className="rounded-2xl border border-[#ECECEC] bg-white p-6 shadow-sm space-y-4"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#ECECEC] pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-zinc-900 dark:text-white">
+                  <span className="font-bold text-sm text-[#231F20]">
                     Claim #{claim.claim_id}
                   </span>
                   <span className="text-zinc-300">•</span>
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-[#64748B]">
                     Submitted on {new Date(claim.claim_date).toLocaleDateString()}
                   </span>
                 </div>
@@ -124,10 +124,10 @@ export default function MyClaimsPage() {
                   <span
                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${
                       claim.status === 'Approved'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        ? 'bg-emerald-100 text-emerald-800'
                         : claim.status === 'Rejected'
-                        ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
-                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-[#FFF4ED] text-[#D3632D] border border-[#FFD8C2]'
                     }`}
                   >
                     {claim.status === 'Approved' && <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -139,19 +139,19 @@ export default function MyClaimsPage() {
               </div>
 
               {/* Claimed Item Summary */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-50 dark:bg-zinc-800/50 p-3.5 rounded-xl text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#F8F9FA] border border-[#ECECEC] p-3.5 rounded-xl text-xs">
                 <div>
-                  <span className="text-zinc-400 block text-[11px]">Found Item Target:</span>
-                  <h4 className="font-bold text-zinc-900 dark:text-white">
+                  <span className="text-[#64748B] block text-[11px]">Found Item Target:</span>
+                  <h4 className="font-bold text-[#231F20]">
                     {claim.found_item?.item_name}
                   </h4>
-                  <p className="text-zinc-500">
+                  <p className="text-[#64748B]">
                     {claim.found_item?.category?.category_name} • Location: {claim.found_item?.location?.location_name}
                   </p>
                 </div>
                 <Link
                   href={`/item/found-${claim.found_item?.found_item_id}`}
-                  className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-500"
+                  className="inline-flex items-center gap-1 font-bold text-[#D3632D] hover:text-[#BA4F1D]"
                 >
                   <span>Inspect Found Item</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -160,25 +160,25 @@ export default function MyClaimsPage() {
 
               {/* Submitted Proof */}
               <div className="text-xs space-y-1">
-                <span className="font-semibold text-zinc-500">Your Submitted Proof:</span>
-                <p className="text-zinc-700 dark:text-zinc-300 italic bg-white dark:bg-zinc-900 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <span className="font-semibold text-[#64748B]">Your Submitted Proof:</span>
+                <p className="text-[#231F20] italic bg-[#F8F9FA] p-3 rounded-xl border border-[#ECECEC]">
                   &quot;{claim.proof}&quot;
                 </p>
               </div>
 
               {/* Verification Decision (1:1 Relation with VERIFICATION) */}
               {claim.verification && (
-                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20 text-xs space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-blue-900 dark:text-blue-200">
-                    <ShieldCheck className="h-4 w-4 text-blue-600" />
+                <div className="rounded-xl border border-[#FFD8C2] bg-[#FFF4ED] p-4 text-xs space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-[#D3632D]">
+                    <ShieldCheck className="h-4 w-4 text-[#D3632D]" />
                     <span>Administrator Verification Decision: {claim.verification.status}</span>
                   </div>
                   {claim.verification.remarks && (
-                    <p className="text-zinc-600 dark:text-zinc-300">
+                    <p className="text-[#231F20]">
                       <strong>Admin Remarks:</strong> {claim.verification.remarks}
                     </p>
                   )}
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-[11px] text-[#64748B]">
                     Verified by {claim.verification.admin?.name} on{' '}
                     {new Date(claim.verification.verification_date).toLocaleDateString()}
                   </p>

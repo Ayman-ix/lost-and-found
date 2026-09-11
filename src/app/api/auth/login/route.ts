@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { queryOne, execute } from '@/lib/db';
 import { createSession, setSessionCookie } from '@/lib/session';
 
 export async function POST(request: Request) {
@@ -19,61 +19,45 @@ export async function POST(request: Request) {
 
     // 1. ADMIN AUTHENTICATION
     if (role === 'admin') {
-      // Check if admin table has any records; if completely empty, seed the default admin
-      const { count } = await supabaseAdmin
-        .from('admin')
-        .select('*', { count: 'exact', head: true });
+      const adminRecord = await queryOne<any>(
+        'SELECT admin_id, name, email, password FROM `admin` WHERE email = ?',
+        [trimmedEmail]
+      );
 
-      if (count === 0 && trimmedEmail === 'admin@campus.edu' && password === 'admin123') {
+      // If no admin exists in the database and they are trying to log in with default credentials, seed it
+      if (!adminRecord && trimmedEmail === 'admin@campus.edu' && password === 'admin123') {
         const defaultHashed = await bcrypt.hash('admin123', 10);
-        const { data: seededAdmin } = await supabaseAdmin
-          .from('admin')
-          .insert([
-            {
-              name: 'Campus Administrator',
-              email: 'admin@campus.edu',
-              password: defaultHashed,
-            },
-          ])
-          .select('admin_id, name, email')
-          .single();
+        const result = await execute(
+          'INSERT INTO `admin` (name, email, password) VALUES (?, ?, ?)',
+          ['Campus Administrator', 'admin@campus.edu', defaultHashed]
+        );
 
-        if (seededAdmin) {
-          const sessionToken = await createSession({
-            userId: seededAdmin.admin_id,
-            name: seededAdmin.name,
-            email: seededAdmin.email,
+        const sessionToken = await createSession({
+          userId: result.insertId,
+          name: 'Campus Administrator',
+          email: 'admin@campus.edu',
+          role: 'admin',
+        });
+        await setSessionCookie(sessionToken);
+
+        return NextResponse.json({
+          success: true,
+          user: {
+            userId: result.insertId,
+            name: 'Campus Administrator',
+            email: 'admin@campus.edu',
             role: 'admin',
-          });
-          await setSessionCookie(sessionToken);
-
-          return NextResponse.json({
-            success: true,
-            user: {
-              userId: seededAdmin.admin_id,
-              name: seededAdmin.name,
-              email: seededAdmin.email,
-              role: 'admin',
-            },
-          });
-        }
+          },
+        });
       }
 
-      // Query admin table
-      const { data: adminRecord, error: adminErr } = await supabaseAdmin
-        .from('admin')
-        .select('admin_id, name, email, password')
-        .eq('email', trimmedEmail)
-        .maybeSingle();
-
-      if (adminErr || !adminRecord) {
+      if (!adminRecord) {
         return NextResponse.json(
           { error: 'Invalid admin email or password.' },
           { status: 401 }
         );
       }
 
-      // Compare password
       const isMatch = await bcrypt.compare(password, adminRecord.password);
       if (!isMatch) {
         return NextResponse.json(
@@ -102,13 +86,12 @@ export async function POST(request: Request) {
     }
 
     // 2. REGULAR USER AUTHENTICATION
-    const { data: userRecord, error: userErr } = await supabaseAdmin
-      .from('user')
-      .select('user_id, name, email, password')
-      .eq('email', trimmedEmail)
-      .maybeSingle();
+    const userRecord = await queryOne<any>(
+      'SELECT user_id, name, email, password FROM `user` WHERE email = ?',
+      [trimmedEmail]
+    );
 
-    if (userErr || !userRecord) {
+    if (!userRecord) {
       return NextResponse.json(
         { error: 'No account found with this email.' },
         { status: 401 }

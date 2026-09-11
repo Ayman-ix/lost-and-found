@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query, queryOne, execute } from '@/lib/db';
 
 /**
  * DBMS Viva Explanation:
@@ -12,7 +12,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
  * ------------------------------
  * Maximum:                100 pts
  *
- * Threshold: >= 40 pts creates a POTENTIAL_MATCH record in PostgreSQL.
+ * Threshold: >= 40 pts creates a POTENTIAL_MATCH record in MySQL.
  */
 
 export interface ItemAttributes {
@@ -27,7 +27,7 @@ export function calculateMatchScore(lost: ItemAttributes, found: ItemAttributes)
   let score = 0;
 
   // 1. Same Category (+25 pts)
-  if (lost.category_id === found.category_id) {
+  if (Number(lost.category_id) === Number(found.category_id)) {
     score += 25;
   }
 
@@ -54,12 +54,11 @@ export function calculateMatchScore(lost: ItemAttributes, found: ItemAttributes)
   }
 
   // 4. Same Location (+20 pts)
-  if (lost.location_id === found.location_id) {
+  if (Number(lost.location_id) === Number(found.location_id)) {
     score += 20;
   }
 
   // 5. Date Proximity (+15 pts)
-  // Found date should typically be on or after lost date, within reasonable threshold
   if (lost.date && found.date) {
     const lostTime = new Date(lost.date).getTime();
     const foundTime = new Date(found.date).getTime();
@@ -82,87 +81,85 @@ export function calculateMatchScore(lost: ItemAttributes, found: ItemAttributes)
  * Compares against active FOUND items and creates matches & notifications.
  */
 export async function matchLostItemAgainstFound(lostItemId: number, lostUserId: number) {
-  // Fetch the lost item details
-  const { data: lostItem } = await supabaseAdmin
-    .from('lost_item')
-    .select('lost_item_id, item_name, category_id, location_id, brand, color, date_lost')
-    .eq('lost_item_id', lostItemId)
-    .single();
-
-  if (!lostItem) return [];
-
-  // Fetch all active found items (status: 'Found')
-  const { data: foundCandidates } = await supabaseAdmin
-    .from('found_item')
-    .select('found_item_id, user_id, item_name, category_id, location_id, brand, color, date_found')
-    .eq('status', 'Found');
-
-  if (!foundCandidates || foundCandidates.length === 0) return [];
-
-  const createdMatches = [];
-
-  for (const found of foundCandidates) {
-    const score = calculateMatchScore(
-      {
-        category_id: lostItem.category_id,
-        location_id: lostItem.location_id,
-        brand: lostItem.brand,
-        color: lostItem.color,
-        date: lostItem.date_lost,
-      },
-      {
-        category_id: found.category_id,
-        location_id: found.location_id,
-        brand: found.brand,
-        color: found.color,
-        date: found.date_found,
-      }
+  try {
+    const lostItem = await queryOne<any>(
+      `SELECT lost_item_id, item_name, category_id, location_id, brand, color, date_lost
+       FROM lost_item
+       WHERE lost_item_id = ?`,
+      [lostItemId]
     );
 
-    // Threshold check (>= 40)
-    if (score >= 40) {
-      const matchStatus = score >= 70 ? 'Possible' : 'Pending';
+    if (!lostItem) return [];
 
-      // Insert into potential_match table (upsert to avoid duplicates)
-      const { data: matchRecord, error } = await supabaseAdmin
-        .from('potential_match')
-        .upsert(
-          [
-            {
-              lost_item_id: lostItem.lost_item_id,
-              found_item_id: found.found_item_id,
-              match_score: score,
-              match_status: matchStatus,
-            },
-          ],
-          { onConflict: 'lost_item_id,found_item_id' }
-        )
-        .select()
-        .single();
+    const foundCandidates = await query<any>(
+      `SELECT found_item_id, user_id, item_name, category_id, location_id, brand, color, date_found
+       FROM found_item
+       WHERE status = 'Found'`
+    );
 
-      if (!error && matchRecord) {
-        createdMatches.push(matchRecord);
+    if (!foundCandidates || foundCandidates.length === 0) return [];
+
+    const createdMatches = [];
+
+    for (const found of foundCandidates) {
+      const score = calculateMatchScore(
+        {
+          category_id: lostItem.category_id,
+          location_id: lostItem.location_id,
+          brand: lostItem.brand,
+          color: lostItem.color,
+          date: String(lostItem.date_lost),
+        },
+        {
+          category_id: found.category_id,
+          location_id: found.location_id,
+          brand: found.brand,
+          color: found.color,
+          date: String(found.date_found),
+        }
+      );
+
+      if (score >= 40) {
+        const matchStatus = score >= 70 ? 'Possible' : 'Pending';
+
+        // Upsert into potential_match table
+        await execute(
+          `INSERT INTO potential_match (lost_item_id, found_item_id, match_score, match_status)
+           VALUES (?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE match_score = VALUES(match_score), match_status = VALUES(match_status)`,
+          [lostItem.lost_item_id, found.found_item_id, score, matchStatus]
+        );
+
+        createdMatches.push({
+          lost_item_id: lostItem.lost_item_id,
+          found_item_id: found.found_item_id,
+          match_score: score,
+          match_status: matchStatus,
+        });
 
         // Notify the user who reported the lost item
-        await supabaseAdmin.from('notification').insert([
-          {
-            user_id: lostUserId,
-            message: `Potential match found (${score}% score)! A found item "${found.item_name}" resembles your lost "${lostItem.item_name}".`,
-            status: 'Unread',
-          },
-        ]);
+        await execute(
+          `INSERT INTO notification (user_id, message, status)
+           VALUES (?, ?, 'Unread')`,
+          [
+            lostUserId,
+            `Potential match found (${score}% score)! A found item "${found.item_name}" resembles your lost "${lostItem.item_name}".`,
+          ]
+        );
 
         // Update lost_item status to 'Matched' if it was 'Lost'
-        await supabaseAdmin
-          .from('lost_item')
-          .update({ status: 'Matched' })
-          .eq('lost_item_id', lostItemId)
-          .eq('status', 'Lost');
+        await execute(
+          `UPDATE lost_item SET status = 'Matched' WHERE lost_item_id = ? AND status = 'Lost'`,
+          [lostItemId]
+        );
       }
     }
-  }
 
-  return createdMatches;
+    return createdMatches;
+  } catch (err) {
+    console.error('Error in matchLostItemAgainstFound:', err);
+    return [];
+  }
 }
 
 /**
@@ -170,83 +167,82 @@ export async function matchLostItemAgainstFound(lostItemId: number, lostUserId: 
  * Compares against active LOST items and creates matches & notifications.
  */
 export async function matchFoundItemAgainstLost(foundItemId: number, _foundUserId: number) {
-  // Fetch the found item details
-  const { data: foundItem } = await supabaseAdmin
-    .from('found_item')
-    .select('found_item_id, item_name, category_id, location_id, brand, color, date_found')
-    .eq('found_item_id', foundItemId)
-    .single();
-
-  if (!foundItem) return [];
-
-  // Fetch all active lost items (status: 'Lost' or 'Matched')
-  const { data: lostCandidates } = await supabaseAdmin
-    .from('lost_item')
-    .select('lost_item_id, user_id, item_name, category_id, location_id, brand, color, date_lost')
-    .in('status', ['Lost', 'Matched']);
-
-  if (!lostCandidates || lostCandidates.length === 0) return [];
-
-  const createdMatches = [];
-
-  for (const lost of lostCandidates) {
-    const score = calculateMatchScore(
-      {
-        category_id: lost.category_id,
-        location_id: lost.location_id,
-        brand: lost.brand,
-        color: lost.color,
-        date: lost.date_lost,
-      },
-      {
-        category_id: foundItem.category_id,
-        location_id: foundItem.location_id,
-        brand: foundItem.brand,
-        color: foundItem.color,
-        date: foundItem.date_found,
-      }
+  try {
+    const foundItem = await queryOne<any>(
+      `SELECT found_item_id, item_name, category_id, location_id, brand, color, date_found
+       FROM found_item
+       WHERE found_item_id = ?`,
+      [foundItemId]
     );
 
-    if (score >= 40) {
-      const matchStatus = score >= 70 ? 'Possible' : 'Pending';
+    if (!foundItem) return [];
 
-      const { data: matchRecord, error } = await supabaseAdmin
-        .from('potential_match')
-        .upsert(
+    const lostCandidates = await query<any>(
+      `SELECT lost_item_id, user_id, item_name, category_id, location_id, brand, color, date_lost
+       FROM lost_item
+       WHERE status IN ('Lost', 'Matched')`
+    );
+
+    if (!lostCandidates || lostCandidates.length === 0) return [];
+
+    const createdMatches = [];
+
+    for (const lost of lostCandidates) {
+      const score = calculateMatchScore(
+        {
+          category_id: lost.category_id,
+          location_id: lost.location_id,
+          brand: lost.brand,
+          color: lost.color,
+          date: String(lost.date_lost),
+        },
+        {
+          category_id: foundItem.category_id,
+          location_id: foundItem.location_id,
+          brand: foundItem.brand,
+          color: foundItem.color,
+          date: String(foundItem.date_found),
+        }
+      );
+
+      if (score >= 40) {
+        const matchStatus = score >= 70 ? 'Possible' : 'Pending';
+
+        await execute(
+          `INSERT INTO potential_match (lost_item_id, found_item_id, match_score, match_status)
+           VALUES (?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE match_score = VALUES(match_score), match_status = VALUES(match_status)`,
+          [lost.lost_item_id, foundItem.found_item_id, score, matchStatus]
+        );
+
+        createdMatches.push({
+          lost_item_id: lost.lost_item_id,
+          found_item_id: foundItem.found_item_id,
+          match_score: score,
+          match_status: matchStatus,
+        });
+
+        // Notify the user who reported the lost item
+        await execute(
+          `INSERT INTO notification (user_id, message, status)
+           VALUES (?, ?, 'Unread')`,
           [
-            {
-              lost_item_id: lost.lost_item_id,
-              found_item_id: foundItem.found_item_id,
-              match_score: score,
-              match_status: matchStatus,
-            },
-          ],
-          { onConflict: 'lost_item_id,found_item_id' }
-        )
-        .select()
-        .single();
+            lost.user_id,
+            `Great news! A new found item "${foundItem.item_name}" matches your lost "${lost.item_name}" with a ${score}% score. Check matches now!`,
+          ]
+        );
 
-      if (!error && matchRecord) {
-        createdMatches.push(matchRecord);
-
-        // Notify the owner of the lost item
-        await supabaseAdmin.from('notification').insert([
-          {
-            user_id: lost.user_id,
-            message: `Great news! A found item "${foundItem.item_name}" closely matches (${score}%) your reported lost item "${lost.item_name}".`,
-            status: 'Unread',
-          },
-        ]);
-
-        // Update lost_item status to 'Matched'
-        await supabaseAdmin
-          .from('lost_item')
-          .update({ status: 'Matched' })
-          .eq('lost_item_id', lost.lost_item_id)
-          .eq('status', 'Lost');
+        // Update lost_item status
+        await execute(
+          `UPDATE lost_item SET status = 'Matched' WHERE lost_item_id = ? AND status = 'Lost'`,
+          [lost.lost_item_id]
+        );
       }
     }
-  }
 
-  return createdMatches;
+    return createdMatches;
+  } catch (err) {
+    console.error('Error in matchFoundItemAgainstLost:', err);
+    return [];
+  }
 }

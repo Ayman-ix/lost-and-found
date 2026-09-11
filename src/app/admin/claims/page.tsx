@@ -213,7 +213,7 @@ export default function AdminClaimsPage() {
                     Claimant (USER table)
                   </span>
                   <div className="font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5 text-blue-600" />
+                    <User className="h-3.5 w-3.5 text-[#D3632D]" />
                     <span>{claim.user?.name}</span>
                   </div>
                   <p className="text-zinc-500">
@@ -230,7 +230,7 @@ export default function AdminClaimsPage() {
                     <span>{claim.found_item?.item_name}</span>
                     <Link
                       href={`/item/found-${claim.found_item?.found_item_id}`}
-                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-500 flex items-center gap-0.5"
+                      className="text-[11px] font-bold text-[#D3632D] hover:text-[#BA4F1D] flex items-center gap-0.5"
                     >
                       <span>Inspect</span>
                       <ExternalLink className="h-3 w-3" />
@@ -254,11 +254,11 @@ export default function AdminClaimsPage() {
 
               {/* Existing Verification Details */}
               {claim.verification && (
-                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3.5 dark:border-blue-900/50 dark:bg-blue-950/20 text-xs">
-                  <span className="font-semibold text-blue-900 dark:text-blue-300">
+                <div className="rounded-xl border border-[#FFD8C2] bg-[#FFF4ED] p-3.5 text-xs">
+                  <span className="font-bold text-[#D3632D]">
                     Verification Audit Record (VERIFICATION table):
                   </span>
-                  <p className="text-zinc-600 dark:text-zinc-300 mt-1">
+                  <p className="text-[#231F20] mt-1">
                     <strong>Status:</strong> {claim.verification.status} •{' '}
                     <strong>Remarks:</strong> {claim.verification.remarks || 'None'} •{' '}
                     <strong>Admin:</strong> {claim.verification.admin?.name}
@@ -366,7 +366,7 @@ export default function AdminClaimsPage() {
                       ? 'e.g. Serial number and markings matched campus registration records. Authorized for pickup.'
                       : 'e.g. Proof was insufficient or did not match distinguishing features.'
                   }
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 p-2.5 text-xs text-zinc-900 focus:border-blue-600 focus:bg-white focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-white"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 p-2.5 text-xs text-zinc-900 focus:border-[#D3632D] focus:bg-white focus:outline-none dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-white"
                 />
               </div>
 

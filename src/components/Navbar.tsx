@@ -27,53 +27,53 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200 bg-white/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90">
+    <header className="sticky top-0 z-50 w-full border-b border-[#ECECEC] bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo */}
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-zinc-900 transition hover:opacity-90 dark:text-white"
+            className="flex items-center gap-3 text-[#231F20] transition hover:opacity-95"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D3632D] text-white shadow-sm shadow-[#D3632D]/30">
               <Compass className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold tracking-tight text-base sm:text-lg">Lost & Found</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                Network System
+              <span className="font-bold tracking-tight text-lg text-[#231F20]">Lost &amp; Found</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D3632D]">
+                Campus Portal
               </span>
             </div>
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-1 text-sm font-semibold">
             <Link
               href="/items/lost"
-              className={`px-3 py-2 rounded-lg transition ${
+              className={`px-3.5 py-2 rounded-lg transition ${
                 isActive('/items/lost')
-                  ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900'
+                  ? 'bg-[#FFF4ED] text-[#D3632D]'
+                  : 'text-[#231F20] hover:text-[#D3632D] hover:bg-gray-50'
               }`}
             >
               Lost Items
             </Link>
             <Link
               href="/items/found"
-              className={`px-3 py-2 rounded-lg transition ${
+              className={`px-3.5 py-2 rounded-lg transition ${
                 isActive('/items/found')
-                  ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900'
+                  ? 'bg-[#FFF4ED] text-[#D3632D]'
+                  : 'text-[#231F20] hover:text-[#D3632D] hover:bg-gray-50'
               }`}
             >
               Found Items
             </Link>
             <Link
               href="/items"
-              className={`px-3 py-2 rounded-lg transition ${
+              className={`px-3.5 py-2 rounded-lg transition ${
                 isActive('/items')
-                  ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900'
+                  ? 'bg-[#FFF4ED] text-[#D3632D]'
+                  : 'text-[#231F20] hover:text-[#D3632D] hover:bg-gray-50'
               }`}
             >
               All Directory
@@ -87,21 +87,21 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <Link
               href="/report-lost"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50/70 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#D3632D]/40 bg-[#FFF4ED] px-3.5 py-1.5 text-xs font-bold text-[#D3632D] transition hover:bg-[#FFE8D6]"
             >
               <PlusCircle className="h-3.5 w-3.5" />
               Report Lost
             </Link>
             <Link
               href="/report-found"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-600/30 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
             >
               <PlusCircle className="h-3.5 w-3.5" />
               Report Found
             </Link>
           </div>
 
-          <div className="h-5 w-px bg-zinc-200 dark:bg-zinc-800 mx-1" />
+          <div className="h-5 w-px bg-[#ECECEC] mx-1" />
 
           {/* User state */}
           {user ? (
@@ -137,9 +137,9 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-200 p-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                  className="flex items-center gap-2 rounded-lg border border-[#ECECEC] p-1.5 text-sm font-semibold text-[#231F20] hover:bg-gray-50"
                 >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold text-xs dark:bg-blue-900 dark:text-blue-300">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF4ED] text-[#D3632D] font-bold text-xs">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <span className="max-w-[120px] truncate pr-1">{user.name}</span>
@@ -148,12 +148,12 @@ export default function Navbar() {
                 {userDropdownOpen && (
                   <div
                     onMouseLeave={() => setUserDropdownOpen(false)}
-                    className="absolute right-0 mt-2 w-52 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 text-sm z-50 animate-in fade-in zoom-in-95"
+                    className="absolute right-0 mt-2 w-52 rounded-xl border border-[#ECECEC] bg-white p-2 shadow-xl text-sm z-50 animate-in fade-in zoom-in-95"
                   >
-                    <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 mb-1">
-                      <p className="font-medium text-zinc-900 dark:text-white truncate">{user.name}</p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{user.email}</p>
-                      <span className="mt-1 inline-block text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                    <div className="px-3 py-2 border-b border-[#ECECEC] mb-1">
+                      <p className="font-bold text-[#231F20] truncate">{user.name}</p>
+                      <p className="text-xs text-[#64748B] truncate">{user.email}</p>
+                      <span className="mt-1 inline-block text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#FFF4ED] text-[#D3632D]">
                         {user.role}
                       </span>
                     </div>
@@ -163,25 +163,25 @@ export default function Navbar() {
                         <Link
                           href="/my-items"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#231F20] hover:bg-[#FFF4ED] hover:text-[#D3632D]"
                         >
-                          <Package className="h-4 w-4 text-zinc-500" />
+                          <Package className="h-4 w-4 text-[#64748B]" />
                           My Reported Items
                         </Link>
                         <Link
                           href="/my-claims"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#231F20] hover:bg-[#FFF4ED] hover:text-[#D3632D]"
                         >
-                          <FileCheck className="h-4 w-4 text-zinc-500" />
+                          <FileCheck className="h-4 w-4 text-[#64748B]" />
                           My Submitted Claims
                         </Link>
                         <Link
                           href="/profile"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#231F20] hover:bg-[#FFF4ED] hover:text-[#D3632D]"
                         >
-                          <User className="h-4 w-4 text-zinc-500" />
+                          <User className="h-4 w-4 text-[#64748B]" />
                           My Profile
                         </Link>
                       </>
@@ -191,21 +191,21 @@ export default function Navbar() {
                       <Link
                         href="/admin"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-zinc-800 font-medium"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#D3632D] hover:bg-[#FFF4ED] font-bold"
                       >
                         <Shield className="h-4 w-4" />
                         Admin Dashboard
                       </Link>
                     )}
 
-                    <div className="border-t border-zinc-100 dark:border-zinc-800 my-1" />
+                    <div className="border-t border-[#ECECEC] my-1" />
 
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);
                         logout();
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 text-left font-medium"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 text-left font-semibold"
                     >
                       <LogOut className="h-4 w-4" />
                       Sign Out
@@ -218,13 +218,13 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-3.5 py-1.5 text-sm font-medium text-zinc-700 hover:text-zinc-900 rounded-lg hover:bg-zinc-100 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-800 transition"
+                className="px-3.5 py-1.5 text-sm font-semibold text-[#231F20] hover:text-[#D3632D] rounded-lg hover:bg-gray-50 transition"
               >
                 Sign In
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition active:scale-95"
+                className="rounded-lg bg-[#D3632D] px-4 py-1.5 text-xs font-bold text-white uppercase tracking-wider shadow-sm shadow-[#D3632D]/25 hover:bg-[#BA4F1D] transition active:scale-95"
               >
                 Create Account
               </Link>
@@ -237,11 +237,11 @@ export default function Navbar() {
           {user && user.role === 'user' && (
             <Link
               href="/notifications"
-              className="relative p-2 text-zinc-600 dark:text-zinc-300"
+              className="relative p-2 text-[#231F20]"
             >
               <Bell className="h-5 w-5" />
               {unreadNotifications > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#D3632D] text-[10px] font-bold text-white">
                   {unreadNotifications}
                 </span>
               )}
@@ -249,7 +249,7 @@ export default function Navbar() {
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-zinc-700 dark:text-zinc-200"
+            className="p-2 text-[#231F20]"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -259,26 +259,26 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-zinc-200 bg-white px-4 py-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex flex-col gap-2 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="md:hidden border-b border-[#ECECEC] bg-white px-4 py-4">
+          <div className="flex flex-col gap-2 pb-3 border-b border-[#ECECEC]">
             <Link
               href="/items/lost"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 font-medium"
+              className="px-3.5 py-2 rounded-lg text-[#231F20] hover:bg-[#FFF4ED] hover:text-[#D3632D] font-semibold"
             >
               Lost Items
             </Link>
             <Link
               href="/items/found"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 font-medium"
+              className="px-3.5 py-2 rounded-lg text-[#231F20] hover:bg-[#FFF4ED] hover:text-[#D3632D] font-semibold"
             >
               Found Items
             </Link>
             <Link
               href="/items"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 font-medium"
+              className="px-3.5 py-2 rounded-lg text-[#231F20] hover:bg-[#FFF4ED] hover:text-[#D3632D] font-semibold"
             >
               All Directory
             </Link>
@@ -288,7 +288,7 @@ export default function Navbar() {
             <Link
               href="/report-lost"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-red-50 border border-red-200 p-2 text-xs font-semibold text-red-700 dark:bg-red-950/50 dark:border-red-800 dark:text-red-300"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#FFF4ED] border border-[#D3632D]/30 p-2 text-xs font-bold text-[#D3632D]"
             >
               <PlusCircle className="h-3.5 w-3.5" />
               Report Lost
@@ -296,7 +296,7 @@ export default function Navbar() {
             <Link
               href="/report-found"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-300"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-600/30 p-2 text-xs font-bold text-emerald-700"
             >
               <PlusCircle className="h-3.5 w-3.5" />
               Report Found
@@ -305,29 +305,29 @@ export default function Navbar() {
 
           {user ? (
             <div className="flex flex-col gap-2 pt-2">
-              <div className="px-3 py-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                Signed in as <strong className="text-zinc-900 dark:text-white">{user.name}</strong>
+              <div className="px-3 py-1.5 text-xs text-[#64748B]">
+                Signed in as <strong className="text-[#231F20]">{user.name}</strong>
               </div>
               {user.role === 'user' && (
                 <>
                   <Link
                     href="/my-items"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className="px-3 py-2 rounded-lg text-sm text-[#231F20] hover:bg-[#FFF4ED]"
                   >
                     My Items
                   </Link>
                   <Link
                     href="/my-claims"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className="px-3 py-2 rounded-lg text-sm text-[#231F20] hover:bg-[#FFF4ED]"
                   >
                     My Claims
                   </Link>
                   <Link
                     href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-lg text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                    className="px-3 py-2 rounded-lg text-sm text-[#231F20] hover:bg-[#FFF4ED]"
                   >
                     Profile
                   </Link>
@@ -337,7 +337,7 @@ export default function Navbar() {
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold text-amber-700 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-300"
+                  className="px-3 py-2 rounded-lg text-sm font-bold text-[#D3632D] bg-[#FFF4ED]"
                 >
                   Admin Portal
                 </Link>
@@ -347,7 +347,7 @@ export default function Navbar() {
                   setMobileMenuOpen(false);
                   logout();
                 }}
-                className="mt-2 w-full rounded-lg border border-red-200 p-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400"
+                className="mt-2 w-full rounded-lg border border-red-200 p-2 text-sm font-semibold text-red-600 hover:bg-red-50"
               >
                 Sign Out
               </button>
@@ -357,14 +357,14 @@ export default function Navbar() {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center rounded-lg border border-zinc-300 p-2 text-sm font-medium text-zinc-800 dark:border-zinc-700 dark:text-zinc-200"
+                className="w-full text-center rounded-lg border border-[#ECECEC] p-2 text-sm font-semibold text-[#231F20] hover:bg-gray-50"
               >
                 Sign In
               </Link>
               <Link
                 href="/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center rounded-lg bg-blue-600 p-2 text-sm font-medium text-white shadow-sm"
+                className="w-full text-center rounded-lg bg-[#D3632D] p-2 text-xs font-bold text-white uppercase tracking-wider shadow-sm hover:bg-[#BA4F1D]"
               >
                 Create Account
               </Link>

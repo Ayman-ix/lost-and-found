@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
 export async function GET() {
@@ -9,41 +9,26 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { data: users, error: userErr } = await supabaseAdmin
-      .from('user')
-      .select('user_id, name, email, phone, created_at')
-      .order('user_id', { ascending: true });
-
-    if (userErr) {
-      return NextResponse.json({ error: userErr.message }, { status: 500 });
-    }
-
-    // Get counts for each user
-    const formatted = await Promise.all(
-      (users || []).map(async (u) => {
-        const [lost, found, claims] = await Promise.all([
-          supabaseAdmin
-            .from('lost_item')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', u.user_id),
-          supabaseAdmin
-            .from('found_item')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', u.user_id),
-          supabaseAdmin
-            .from('claim')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', u.user_id),
-        ]);
-
-        return {
-          ...u,
-          lostCount: lost.count || 0,
-          foundCount: found.count || 0,
-          claimsCount: claims.count || 0,
-        };
-      })
+    const users = await query<any>(
+      `SELECT 
+        u.user_id,
+        u.name,
+        u.email,
+        u.phone,
+        u.created_at,
+        (SELECT COUNT(*) FROM lost_item WHERE user_id = u.user_id) AS lostCount,
+        (SELECT COUNT(*) FROM found_item WHERE user_id = u.user_id) AS foundCount,
+        (SELECT COUNT(*) FROM claim WHERE user_id = u.user_id) AS claimsCount
+      FROM \`user\` u
+      ORDER BY u.user_id ASC`
     );
+
+    const formatted = users.map((u) => ({
+      ...u,
+      lostCount: Number(u.lostCount || 0),
+      foundCount: Number(u.foundCount || 0),
+      claimsCount: Number(u.claimsCount || 0),
+    }));
 
     return NextResponse.json({ users: formatted });
   } catch (err: unknown) {

@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                      <span className="font-semibold text-[#D3632D]">
                         {u.claimsCount} claims
                       </span>
                     </td>

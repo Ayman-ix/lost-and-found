@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { queryOne, execute } from '@/lib/db';
 import { createSession, setSessionCookie } from '@/lib/session';
 
 export async function POST(request: Request) {
@@ -31,12 +31,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if email is already registered in "user" table
-    const { data: existingUser } = await supabaseAdmin
-      .from('user')
-      .select('user_id')
-      .eq('email', trimmedEmail)
-      .maybeSingle();
+    // Check if email is already registered in MySQL "user" table
+    const existingUser = await queryOne<any>(
+      'SELECT user_id FROM `user` WHERE email = ?',
+      [trimmedEmail]
+    );
 
     if (existingUser) {
       return NextResponse.json(
@@ -48,41 +47,29 @@ export async function POST(request: Request) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user into PostgreSQL "user" table
-    const { data: newUser, error: insertError } = await supabaseAdmin
-      .from('user')
-      .insert([
-        {
-          name: name.trim(),
-          email: trimmedEmail,
-          phone: phone ? phone.trim() : null,
-          password: hashedPassword,
-        },
-      ])
-      .select('user_id, name, email, phone, created_at')
-      .single();
+    // Insert user into MySQL "user" table
+    const result = await execute(
+      'INSERT INTO `user` (name, email, phone, password) VALUES (?, ?, ?, ?)',
+      [name.trim(), trimmedEmail, phone ? phone.trim() : null, hashedPassword]
+    );
 
-    if (insertError || !newUser) {
-      return NextResponse.json(
-        { error: insertError?.message || 'Failed to register user.' },
-        { status: 500 }
-      );
-    }
+    const newUserId = result.insertId;
 
     // Create a welcome notification
-    await supabaseAdmin.from('notification').insert([
-      {
-        user_id: newUser.user_id,
-        message: `Welcome to the Lost & Found Network, ${newUser.name}! You can now report lost or found items and submit claims.`,
-        status: 'Unread',
-      },
-    ]);
+    await execute(
+      'INSERT INTO `notification` (user_id, message, status) VALUES (?, ?, ?)',
+      [
+        newUserId,
+        `Welcome to the Lost & Found Network, ${name.trim()}! You can now report lost or found items and submit claims.`,
+        'Unread',
+      ]
+    );
 
     // Issue JWT session
     const sessionToken = await createSession({
-      userId: newUser.user_id,
-      name: newUser.name,
-      email: newUser.email,
+      userId: newUserId,
+      name: name.trim(),
+      email: trimmedEmail,
       role: 'user',
     });
 
@@ -91,9 +78,9 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       user: {
-        userId: newUser.user_id,
-        name: newUser.name,
-        email: newUser.email,
+        userId: newUserId,
+        name: name.trim(),
+        email: trimmedEmail,
         role: 'user',
       },
     });

@@ -1,21 +1,27 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query } from '@/lib/db';
 
 // GET /api/test
-// Tests the database connection by fetching all categories
+// Tests the MySQL database connection
 export async function GET() {
-  const { data, error } = await supabaseAdmin
-    .from('category')
-    .select('*')
-    .order('category_id');
+  try {
+    const categories = await query('SELECT * FROM category ORDER BY category_id');
 
-  if (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      engine: 'MySQL',
+      message: 'MySQL database connection successful!',
+      categories,
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Database connection error';
+    return NextResponse.json(
+      {
+        success: false,
+        engine: 'MySQL',
+        error: message,
+      },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({
-    success: true,
-    message: 'Database connection successful!',
-    categories: data,
-  });
 }

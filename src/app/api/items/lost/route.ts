@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query, execute } from '@/lib/db';
 import { getSession } from '@/lib/session';
 import { matchLostItemAgainstFound } from '@/lib/matcher';
 
@@ -12,44 +12,99 @@ export async function GET(request: Request) {
     const search = searchParams.get('q');
     const status = searchParams.get('status');
 
-    let query = supabaseAdmin
-      .from('lost_item')
-      .select(`
-        lost_item_id,
-        item_name,
-        description,
-        brand,
-        color,
-        date_lost,
-        status,
-        created_at,
-        user:user(user_id, name, email),
-        category:category(category_id, category_name),
-        location:location(location_id, location_name, city),
-        images:item_image(image_id, image_url)
-      `)
-      .order('created_at', { ascending: false });
+    let sql = `
+      SELECT 
+        l.lost_item_id,
+        l.item_name,
+        l.description,
+        l.brand,
+        l.color,
+        l.date_lost,
+        l.status,
+        l.created_at,
+        u.user_id,
+        u.name AS user_name,
+        u.email AS user_email,
+        c.category_id,
+        c.category_name,
+        loc.location_id,
+        loc.location_name,
+        loc.city AS location_city,
+        img.image_id,
+        img.image_url
+      FROM lost_item l
+      LEFT JOIN \`user\` u ON l.user_id = u.user_id
+      LEFT JOIN category c ON l.category_id = c.category_id
+      LEFT JOIN location loc ON l.location_id = loc.location_id
+      LEFT JOIN item_image img ON l.lost_item_id = img.lost_item_id
+      WHERE 1=1
+    `;
+
+    const params: any[] = [];
 
     if (category) {
-      query = query.eq('category_id', category);
+      sql += ` AND l.category_id = ?`;
+      params.push(category);
     }
     if (location) {
-      query = query.eq('location_id', location);
+      sql += ` AND l.location_id = ?`;
+      params.push(location);
     }
     if (status) {
-      query = query.eq('status', status);
+      sql += ` AND l.status = ?`;
+      params.push(status);
     }
     if (search) {
-      query = query.or(`item_name.ilike.%${search}%,description.ilike.%${search}%,brand.ilike.%${search}%,color.ilike.%${search}%`);
+      sql += ` AND (l.item_name LIKE ? OR l.description LIKE ? OR l.brand LIKE ? OR l.color LIKE ?)`;
+      const pattern = `%${search}%`;
+      params.push(pattern, pattern, pattern, pattern);
     }
 
-    const { data, error } = await query;
+    sql += ` ORDER BY l.created_at DESC`;
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const rows = await query<any>(sql, params);
+
+    // Group rows by lost_item_id to collect images array
+    const itemMap = new Map<number, any>();
+
+    for (const row of rows) {
+      if (!itemMap.has(row.lost_item_id)) {
+        itemMap.set(row.lost_item_id, {
+          lost_item_id: row.lost_item_id,
+          item_name: row.item_name,
+          description: row.description,
+          brand: row.brand,
+          color: row.color,
+          date_lost: row.date_lost,
+          status: row.status,
+          created_at: row.created_at,
+          user: {
+            user_id: row.user_id,
+            name: row.user_name,
+            email: row.user_email,
+          },
+          category: {
+            category_id: row.category_id,
+            category_name: row.category_name,
+          },
+          location: {
+            location_id: row.location_id,
+            location_name: row.location_name,
+            city: row.location_city,
+          },
+          images: [],
+        });
+      }
+
+      if (row.image_url) {
+        itemMap.get(row.lost_item_id).images.push({
+          image_id: row.image_id,
+          image_url: row.image_url,
+        });
+      }
     }
 
-    return NextResponse.json({ items: data || [] });
+    return NextResponse.json({ items: Array.from(itemMap.values()) });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Failed to retrieve lost items';
     return NextResponse.json({ error: msg }, { status: 500 });
@@ -87,48 +142,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insert into lost_item
-    const { data: lostItem, error: insertError } = await supabaseAdmin
-      .from('lost_item')
-      .insert([
-        {
-          user_id: session.userId,
-          category_id: Number(categoryId),
-          location_id: Number(locationId),
-          item_name: itemName.trim(),
-          description: description?.trim() || null,
-          brand: brand?.trim() || null,
-          color: color?.trim() || null,
-          date_lost: dateLost,
-          status: 'Lost',
-        },
-      ])
-      .select()
-      .single();
+    // Insert into MySQL lost_item
+    const result = await execute(
+      `INSERT INTO lost_item (user_id, category_id, location_id, item_name, description, brand, color, date_lost, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Lost')`,
+      [
+        session.userId,
+        Number(categoryId),
+        Number(locationId),
+        itemName.trim(),
+        description?.trim() || null,
+        brand?.trim() || null,
+        color?.trim() || null,
+        dateLost,
+      ]
+    );
 
-    if (insertError || !lostItem) {
-      return NextResponse.json(
-        { error: insertError?.message || 'Failed to record lost item' },
-        { status: 500 }
+    const lostItemId = result.insertId;
+
+    // If image provided, insert into item_image table
+    if (imageUrl && imageUrl.trim()) {
+      await execute(
+        `INSERT INTO item_image (lost_item_id, image_url) VALUES (?, ?)`,
+        [lostItemId, imageUrl.trim()]
       );
     }
 
-    // If image provided, insert normalized record into item_image table
-    if (imageUrl && imageUrl.trim()) {
-      await supabaseAdmin.from('item_image').insert([
-        {
-          lost_item_id: lostItem.lost_item_id,
-          image_url: imageUrl.trim(),
-        },
-      ]);
-    }
-
     // Trigger Rule-Based Matching Algorithm
-    const matches = await matchLostItemAgainstFound(lostItem.lost_item_id, session.userId);
+    const matches = await matchLostItemAgainstFound(lostItemId, session.userId);
 
     return NextResponse.json({
       success: true,
-      item: lostItem,
+      item: {
+        lost_item_id: lostItemId,
+        item_name: itemName.trim(),
+        status: 'Lost',
+      },
       matchesFound: matches.length,
       message:
         matches.length > 0

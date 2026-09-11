@@ -1,26 +1,31 @@
 @import "tailwindcss";
 
+/* Campus Theme */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: #F8F9FA;
+  --foreground: #231F20;
+
+  /* Orange & White System */
+  --muj-orange: #D3632D;
+  --muj-orange-hover: #BA4F1D;
+  --muj-orange-light: #FFF4ED;
+  --muj-orange-border: #FFD8C2;
+
+  --muj-black: #231F20;
+  --muj-gray: #ECECEC;
+  --muj-muted: #64748B;
+  --muj-white: #FFFFFF;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-lato), 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-lato), 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

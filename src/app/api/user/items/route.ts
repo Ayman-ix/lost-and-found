@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-server';
+import { query } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
 export async function GET() {
@@ -9,42 +9,47 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [lostRes, foundRes] = await Promise.all([
-      supabaseAdmin
-        .from('lost_item')
-        .select(`
-          lost_item_id,
-          item_name,
-          brand,
-          color,
-          date_lost,
-          status,
-          created_at,
-          category:category(category_name),
-          location:location(location_name),
-          images:item_image(image_url)
-        `)
-        .eq('user_id', session.userId)
-        .order('created_at', { ascending: false }),
-      supabaseAdmin
-        .from('found_item')
-        .select(`
-          found_item_id,
-          item_name,
-          brand,
-          color,
-          date_found,
-          status,
-          created_at,
-          category:category(category_name),
-          location:location(location_name),
-          images:item_image(image_url)
-        `)
-        .eq('user_id', session.userId)
-        .order('created_at', { ascending: false }),
-    ]);
+    const lostRows = await query<any>(
+      `SELECT 
+        l.lost_item_id,
+        l.item_name,
+        l.brand,
+        l.color,
+        l.date_lost,
+        l.status,
+        l.created_at,
+        c.category_name,
+        loc.location_name,
+        (SELECT image_url FROM item_image WHERE lost_item_id = l.lost_item_id LIMIT 1) AS image_url
+      FROM lost_item l
+      LEFT JOIN category c ON l.category_id = c.category_id
+      LEFT JOIN location loc ON l.location_id = loc.location_id
+      WHERE l.user_id = ?
+      ORDER BY l.created_at DESC`,
+      [session.userId]
+    );
 
-    const lostItems = (lostRes.data || []).map((i) => ({
+    const foundRows = await query<any>(
+      `SELECT 
+        f.found_item_id,
+        f.item_name,
+        f.brand,
+        f.color,
+        f.date_found,
+        f.status,
+        f.created_at,
+        c.category_name,
+        loc.location_name,
+        (SELECT image_url FROM item_image WHERE found_item_id = f.found_item_id LIMIT 1) AS image_url
+      FROM found_item f
+      LEFT JOIN category c ON f.category_id = c.category_id
+      LEFT JOIN location loc ON f.location_id = loc.location_id
+      WHERE f.user_id = ?
+      ORDER BY f.created_at DESC`,
+      [session.userId]
+    );
+
+    const lostItems = lostRows.map((i) => ({
       id: i.lost_item_id,
       type: 'lost' as const,
       name: i.item_name,
@@ -52,12 +57,12 @@ export async function GET() {
       color: i.color,
       date: i.date_lost,
       status: i.status,
-      category: (i.category as any)?.category_name,
-      location: (i.location as any)?.location_name,
-      imageUrl: i.images?.[0]?.image_url || null,
+      category: i.category_name || 'General',
+      location: i.location_name || 'Campus',
+      imageUrl: i.image_url || null,
     }));
 
-    const foundItems = (foundRes.data || []).map((i) => ({
+    const foundItems = foundRows.map((i) => ({
       id: i.found_item_id,
       type: 'found' as const,
       name: i.item_name,
@@ -65,9 +70,9 @@ export async function GET() {
       color: i.color,
       date: i.date_found,
       status: i.status,
-      category: (i.category as any)?.category_name,
-      location: (i.location as any)?.location_name,
-      imageUrl: i.images?.[0]?.image_url || null,
+      category: i.category_name || 'General',
+      location: i.location_name || 'Campus',
+      imageUrl: i.image_url || null,
     }));
 
     return NextResponse.json({
