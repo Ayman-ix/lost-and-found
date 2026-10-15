@@ -2,11 +2,17 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Campus Theme */
+/* Campus Theme Tokens */
 :root {
   color-scheme: light;
   --background: #F8F9FA;
   --foreground: #231F20;
+  --bg-panel: #FFFFFF;
+  --bg-editor: #F1F0ED;
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
+  --border: #ECECEC;
+  --border-mid: #CBD5E1;
 
   /* Orange & White System */
   --muj-orange: #D3632D;
@@ -14,20 +20,235 @@
   --muj-orange-light: #FFF4ED;
   --muj-orange-border: #FFD8C2;
 
+  --muj-green: #2E7D5B;
+  --muj-green-hover: #246448;
+  --muj-green-light: #EDF7F2;
+
   --muj-black: #231F20;
   --muj-gray: #ECECEC;
   --muj-muted: #64748B;
   --muj-white: #FFFFFF;
 }
 
+/* getmar.ch Dark Mode Tokens */
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0D0D0D;
+  --foreground: #F0EFE9;
+  --bg-panel: #141414;
+  --bg-editor: #1A1A1A;
+  --text-muted: #8E8C87;
+  --text-dim: #4E4C48;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-mid: rgba(255, 255, 255, 0.14);
+
+  /* Vibrant coral/terracotta on dark */
+  --muj-orange: #E8613A;
+  --muj-orange-hover: #D3522C;
+  --muj-orange-light: rgba(232, 97, 58, 0.12);
+  --muj-orange-border: rgba(232, 97, 58, 0.25);
+
+  --muj-green: #4EC98A;
+  --muj-green-hover: #3EB87A;
+  --muj-green-light: rgba(78, 201, 138, 0.12);
+
+  --muj-black: #F0EFE9;
+  --muj-gray: rgba(255, 255, 255, 0.08);
+  --muj-muted: #8E8C87;
+  --muj-white: #141414;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-lato), 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-figtree), 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-lato), 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-figtree), 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ─── Shared motion easing ────────────────────────────────────────────────── */
+/*
+ * expo-out spring: bursts quickly out of the gate, then glides to rest.
+ * Used everywhere so all motion feels like one consistent system.
+ */
+:root {
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ─── Page-load fade-in-up (hero / stat cards) ───────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s var(--ease-spring) both;
+}
+
+/* ─── Page transition (every route change) ───────────────────────────────── */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  /*
+   * 350ms gives the eye enough time to register the motion.
+   * will-change lets the browser promote the layer to the GPU
+   * BEFORE the paint, eliminating jank on the first frame.
+   */
+  animation: pageEnter 0.35s var(--ease-spring) both;
+  will-change: opacity, transform;
+}
+
+/* Stagger delays for hero + stat cards */
+.anim-delay-0   { animation-delay:   0ms; }
+.anim-delay-80  { animation-delay:  80ms; }
+.anim-delay-160 { animation-delay: 160ms; }
+.anim-delay-240 { animation-delay: 240ms; }
+.anim-delay-320 { animation-delay: 320ms; }
+
+/* ─── Skeleton / shimmer loader ───────────────────────────────────────────── */
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position:  400px 0; }
+}
+
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #ECECEC 25%,
+    #F8F8F8 50%,
+    #ECECEC 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ─── Unified motion: all Tailwind transitions use the spring curve ───────── */
+/*
+ * Tailwind's `transition` class sets `transition-timing-function: cubic-bezier(0.4,0,0.2,1)`.
+ * Override it globally so every hover lift, underline, and shadow uses the same
+ * spring easing as the page transitions — making the whole UI feel consistent.
+ */
+*, *::before, *::after {
+  transition-timing-function: var(--ease-spring);
+}
+
+
+/* ─── Respect prefers-reduced-motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}
+
+/* ─── Global interactive element polish ──────────────────────────────────── */
+
+/* All clickable things get a pointer cursor */
+a,
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+label[for] {
+  cursor: pointer;
+}
+
+/* Orange focus-visible ring (theme color) */
+:focus-visible {
+  outline: 2px solid #D3632D;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Search bar orange glow on focus-within */
+.search-focus-ring:focus-within {
+  border-color: #D3632D !important;
+  box-shadow: 0 0 0 3px rgba(211, 99, 45, 0.18), 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* ─── Nav link underline animation (left → right) ────────────────────────── */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #D3632D;
+  border-radius: 1px;
+  transition: width 0.2s ease-out;
+}
+.nav-underline:hover::after,
+.nav-underline[data-active="true"]::after {
+  width: 100%;
+}
+
+/* ─── Theme Toggle Button (getmar.ch style) ─────────────────────────────── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  border-color: var(--border-mid);
+  color: var(--foreground);
+  background-color: rgba(125, 125, 125, 0.08);
+}
+.theme-toggle svg {
+  display: block;
+}
+
+/* Dark mode adjustments */
+.dark :focus-visible {
+  outline: 2px solid #E8613A;
+}
+
+.dark .search-focus-ring:focus-within {
+  border-color: #E8613A !important;
+  box-shadow: 0 0 0 3px rgba(232, 97, 58, 0.25), 0 4px 14px rgba(0,0,0,0.4);
+}
+
+.dark .skeleton {
+  background: linear-gradient(90deg, #1A1A1A 25%, #262626 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+}
+
+
