@@ -4,7 +4,7 @@ import { Compass, Database, ShieldCheck, Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="mt-auto border-t-2 border-[#D3632D] bg-[#231F20] text-white">
+    <footer className="mt-auto border-t-2 border-[#D3632D] dark:border-[#E8613A] bg-[#231F20] dark:bg-[#0D0D0D] text-white transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Col */}

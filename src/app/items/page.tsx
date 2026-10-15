@@ -155,10 +155,10 @@ function ItemsDirectoryContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#231F20]">
-            Lost & Found Directory
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#231F20] dark:text-[#F0EFE9]">
+            Lost &amp; Found Directory
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-[#64748B]">
+          <p className="mt-1 text-xs sm:text-sm text-[#64748B] dark:text-[#8E8C87]">
             Search, filter, and discover reported items across all campus locations.
           </p>
         </div>
@@ -182,28 +182,28 @@ function ItemsDirectoryContent() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="rounded-2xl border border-[#ECECEC] bg-white p-4 sm:p-5 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-[#ECECEC] dark:border-white/[0.08] bg-white dark:bg-[#141414] p-4 sm:p-5 shadow-sm space-y-4 transition-colors duration-200">
         <div className="flex flex-col lg:flex-row gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-zinc-400 dark:text-[#8E8C87]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by keyword, item name, brand, or color..."
-              className="w-full rounded-xl border border-[#ECECEC] bg-[#F8F9FA] py-2 pl-9 pr-3 text-xs sm:text-sm text-[#231F20] placeholder:text-zinc-400 focus:border-[#D3632D] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
+              className="w-full rounded-xl border border-[#ECECEC] dark:border-white/[0.08] bg-[#F8F9FA] dark:bg-[#1A1A1A] py-2 pl-9 pr-3 text-xs sm:text-sm text-[#231F20] dark:text-[#F0EFE9] placeholder:text-zinc-400 dark:placeholder:text-[#7A7874] focus:border-[#D3632D] dark:focus:border-[#E8613A] focus:bg-white dark:focus:bg-[#1A1A1A] focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
             />
           </div>
 
           {/* Type Filter Buttons */}
-          <div className="flex rounded-xl border border-[#ECECEC] bg-[#F8F9FA] p-1">
+          <div className="flex rounded-xl border border-[#ECECEC] dark:border-white/[0.08] bg-[#F8F9FA] dark:bg-[#1A1A1A] p-1">
             <button
               onClick={() => setTypeFilter('all')}
               className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                 typeFilter === 'all'
-                  ? 'bg-[#D3632D] text-white shadow-sm'
-                  : 'text-[#231F20] hover:text-[#D3632D]'
+                  ? 'bg-[#D3632D] dark:bg-[#E8613A] text-white shadow-sm'
+                  : 'text-[#231F20] dark:text-[#F0EFE9] hover:text-[#D3632D] dark:hover:text-[#E8613A]'
               }`}
             >
               All Items
@@ -213,7 +213,7 @@ function ItemsDirectoryContent() {
               className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                 typeFilter === 'lost'
                   ? 'bg-red-600 text-white shadow-sm'
-                  : 'text-[#231F20] hover:text-red-600'
+                  : 'text-[#231F20] dark:text-[#F0EFE9] hover:text-red-600'
               }`}
             >
               Lost Only
@@ -223,7 +223,7 @@ function ItemsDirectoryContent() {
               className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                 typeFilter === 'found'
                   ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-[#231F20] hover:text-emerald-600'
+                  : 'text-[#231F20] dark:text-[#F0EFE9] hover:text-emerald-600'
               }`}
             >
               Found Only
@@ -232,15 +232,15 @@ function ItemsDirectoryContent() {
         </div>
 
         {/* Dropdown Filters (Category & Location) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t border-[#ECECEC] text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t border-[#ECECEC] dark:border-white/[0.08] text-xs">
           <div>
-            <label className="block text-[11px] font-semibold text-zinc-500 mb-1">
+            <label className="block text-[11px] font-semibold text-zinc-500 dark:text-[#8E8C87] mb-1">
               Category
             </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full rounded-xl border border-[#ECECEC] bg-[#F8F9FA] py-2 px-3 text-[#231F20] focus:border-[#D3632D] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
+              className="w-full rounded-xl border border-[#ECECEC] dark:border-white/[0.08] bg-[#F8F9FA] dark:bg-[#1A1A1A] py-2 px-3 text-[#231F20] dark:text-[#F0EFE9] focus:border-[#D3632D] dark:focus:border-[#E8613A] focus:bg-white dark:focus:bg-[#1A1A1A] focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
             >
               <option value="">All Categories</option>
               {categories.map((c) => (
@@ -252,13 +252,13 @@ function ItemsDirectoryContent() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-zinc-500 mb-1">
+            <label className="block text-[11px] font-semibold text-zinc-500 dark:text-[#8E8C87] mb-1">
               Campus Location
             </label>
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full rounded-xl border border-[#ECECEC] bg-[#F8F9FA] py-2 px-3 text-[#231F20] focus:border-[#D3632D] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
+              className="w-full rounded-xl border border-[#ECECEC] dark:border-white/[0.08] bg-[#F8F9FA] dark:bg-[#1A1A1A] py-2 px-3 text-[#231F20] dark:text-[#F0EFE9] focus:border-[#D3632D] dark:focus:border-[#E8613A] focus:bg-white dark:focus:bg-[#1A1A1A] focus:outline-none focus:ring-1 focus:ring-[#D3632D]"
             >
               <option value="">All Locations</option>
               {locations.map((l) => (
@@ -278,7 +278,7 @@ function ItemsDirectoryContent() {
                   setSelectedLocation('');
                   setTypeFilter('all');
                 }}
-                className="w-full py-2 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                className="w-full py-2 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-[#8E8C87] dark:hover:text-[#F0EFE9]"
               >
                 Reset All Filters
               </button>
@@ -317,10 +317,10 @@ function ItemsDirectoryContent() {
             <Link
               key={`${item.type}-${item.id}`}
               href={`/item/${item.type}-${item.id}`}
-              className="group flex flex-col justify-between rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-sm transition hover:shadow-md hover:border-[#D3632D]/40"
+              className="group flex flex-col justify-between rounded-2xl border border-[#ECECEC] dark:border-white/[0.08] bg-white dark:bg-[#141414] p-4 shadow-sm transition hover:shadow-md hover:border-[#D3632D]/40 dark:hover:border-[#E8613A]/40"
             >
               <div>
-                <div className="relative mb-3 flex h-40 w-full items-center justify-center rounded-xl bg-[#F8F9FA] overflow-hidden">
+                <div className="relative mb-3 flex h-40 w-full items-center justify-center rounded-xl bg-[#F8F9FA] dark:bg-[#1A1A1A] overflow-hidden">
                   {item.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -329,38 +329,38 @@ function ItemsDirectoryContent() {
                       className="h-full w-full object-cover group-hover:scale-105 transition"
                     />
                   ) : (
-                    <Package className="h-10 w-10 text-zinc-400 group-hover:text-[#D3632D] transition" />
+                    <Package className="h-10 w-10 text-zinc-400 dark:text-[#8E8C87] group-hover:text-[#D3632D] dark:group-hover:text-[#E8613A] transition" />
                   )}
                   <span
                     className={`absolute top-2.5 left-2.5 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       item.type === 'lost'
                         ? 'bg-red-500 text-white'
-                        : 'bg-[#D3632D] text-white'
+                        : 'bg-[#D3632D] dark:bg-[#E8613A] text-white'
                     }`}
                   >
                     {item.type}
                   </span>
-                  <span className="absolute bottom-2.5 right-2.5 rounded-md bg-[#231F20]/75 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-white">
+                  <span className="absolute bottom-2.5 right-2.5 rounded-md bg-[#231F20]/75 dark:bg-[#0D0D0D]/80 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-white">
                     {item.category}
                   </span>
                 </div>
 
-                <h3 className="font-bold text-sm text-[#231F20] group-hover:text-[#D3632D] transition truncate">
+                <h3 className="font-bold text-sm text-[#231F20] dark:text-[#F0EFE9] group-hover:text-[#D3632D] dark:group-hover:text-[#E8613A] transition truncate">
                   {item.name}
                 </h3>
-                <p className="mt-1 text-xs text-[#64748B] line-clamp-2">
+                <p className="mt-1 text-xs text-[#64748B] dark:text-[#8E8C87] line-clamp-2">
                   {item.description || 'No additional details provided.'}
                 </p>
 
                 {(item.brand || item.color) && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {item.brand && (
-                      <span className="rounded bg-[#F8F9FA] border border-[#ECECEC] px-1.5 py-0.5 text-[10px] font-semibold text-[#231F20]">
+                      <span className="rounded bg-[#F8F9FA] dark:bg-[#1A1A1A] border border-[#ECECEC] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold text-[#231F20] dark:text-[#F0EFE9]">
                         {item.brand}
                       </span>
                     )}
                     {item.color && (
-                      <span className="rounded bg-[#F8F9FA] border border-[#ECECEC] px-1.5 py-0.5 text-[10px] font-semibold text-[#231F20]">
+                      <span className="rounded bg-[#F8F9FA] dark:bg-[#1A1A1A] border border-[#ECECEC] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-semibold text-[#231F20] dark:text-[#F0EFE9]">
                         {item.color}
                       </span>
                     )}
@@ -368,23 +368,23 @@ function ItemsDirectoryContent() {
                 )}
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#ECECEC] space-y-1.5 text-[11px] text-[#64748B]">
+              <div className="mt-4 pt-3 border-t border-[#ECECEC] dark:border-white/[0.08] space-y-1.5 text-[11px] text-[#64748B] dark:text-[#8E8C87]">
                 <div className="flex items-center gap-1.5 truncate">
-                  <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                  <MapPin className="h-3.5 w-3.5 text-zinc-400 dark:text-[#8E8C87] shrink-0" />
                   <span className="truncate">{item.location}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                    <Calendar className="h-3.5 w-3.5 text-zinc-400 dark:text-[#8E8C87] shrink-0" />
                     <span>{item.date}</span>
                   </div>
                   <span
                     className={`font-bold ${
                       item.status === 'Found' || item.status === 'Returned'
-                        ? 'text-emerald-600'
+                        ? 'text-emerald-600 dark:text-[#4EC98A]'
                         : item.status === 'Matched'
-                        ? 'text-[#D3632D]'
-                        : 'text-[#231F20]'
+                        ? 'text-[#D3632D] dark:text-[#E8613A]'
+                        : 'text-[#231F20] dark:text-[#F0EFE9]'
                     }`}
                   >
                     {item.status}
