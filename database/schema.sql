@@ -216,3 +216,184 @@ ON DUPLICATE KEY UPDATE `location_name` = VALUES(`location_name`);
 INSERT INTO `admin` (`admin_id`, `name`, `email`, `password`) VALUES
 (1, 'Campus Administrator', 'admin@campus.edu', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+
+-- ==========================================================
+-- 12. DATABASE VIEWS (DATA ABSTRACTION & SECURITY)
+-- ==========================================================
+
+-- View 1: Active Lost Items Directory (Hides sensitive user credentials)
+CREATE OR REPLACE VIEW v_active_lost_items AS
+SELECT 
+    l.lost_item_id,
+    l.item_name,
+    c.category_name,
+    loc.location_name,
+    loc.city AS campus_zone,
+    u.name AS reported_by,
+    u.email AS contact_email,
+    l.brand,
+    l.color,
+    l.date_lost,
+    l.status,
+    l.created_at
+FROM lost_item l
+JOIN `user` u ON l.user_id = u.user_id
+JOIN `category` c ON l.category_id = c.category_id
+JOIN `location` loc ON l.location_id = loc.location_id
+WHERE l.status IN ('Lost', 'Matched');
+
+-- View 2: Active Found Items Directory (Available for Claiming)
+CREATE OR REPLACE VIEW v_active_found_items AS
+SELECT 
+    f.found_item_id,
+    f.item_name,
+    c.category_name,
+    loc.location_name AS found_location,
+    f.storage_location,
+    u.name AS handed_in_by,
+    f.brand,
+    f.color,
+    f.date_found,
+    f.status,
+    f.created_at
+FROM found_item f
+JOIN `user` u ON f.user_id = u.user_id
+JOIN `category` c ON f.category_id = c.category_id
+JOIN `location` loc ON f.location_id = loc.location_id
+WHERE f.status = 'Found';
+
+-- View 3: Claims & Verification Management Dashboard
+CREATE OR REPLACE VIEW v_claims_dashboard AS
+SELECT 
+    cl.claim_id,
+    f.found_item_id,
+    f.item_name AS item_claimed,
+    c.category_name,
+    cl.user_id AS claimant_id,
+    u.name AS claimant_name,
+    u.email AS claimant_email,
+    cl.proof AS submitted_proof,
+    cl.status AS claim_status,
+    cl.claim_date,
+    v.verification_id,
+    v.status AS admin_decision,
+    v.remarks AS admin_remarks,
+    a.name AS verified_by
+FROM claim cl
+JOIN found_item f ON cl.found_item_id = f.found_item_id
+JOIN category c ON f.category_id = c.category_id
+JOIN `user` u ON cl.user_id = u.user_id
+LEFT JOIN verification v ON cl.claim_id = v.claim_id
+LEFT JOIN admin a ON v.admin_id = a.admin_id;
+
+-- View 4: Campus Hotspot Analytics (Geographical Loss Distribution)
+CREATE OR REPLACE VIEW v_campus_hotspots AS
+SELECT 
+    loc.location_id,
+    loc.location_name,
+    loc.city AS campus_zone,
+    COUNT(DISTINCT l.lost_item_id) AS total_lost_reports,
+    COUNT(DISTINCT f.found_item_id) AS total_found_reports
+FROM location loc
+LEFT JOIN lost_item l ON loc.location_id = l.location_id
+LEFT JOIN found_item f ON loc.location_id = f.location_id
+GROUP BY loc.location_id, loc.location_name, loc.city;
+
+
+-- ==========================================================
+-- 13. DATABASE TRIGGERS (INTEGRITY & BUSINESS LOGIC)
+-- ==========================================================
+
+DELIMITER $$
+
+-- Trigger 1: BEFORE INSERT ON claim
+-- Enforces business constraint: Cannot submit a claim on an already claimed/returned item.
+DROP TRIGGER IF EXISTS trg_prevent_claim_on_closed_item$$
+CREATE TRIGGER trg_prevent_claim_on_closed_item
+BEFORE INSERT ON claim
+FOR EACH ROW
+BEGIN
+    DECLARE item_current_status VARCHAR(50);
+
+    SELECT status INTO item_current_status
+    FROM found_item
+    WHERE found_item_id = NEW.found_item_id;
+
+    IF item_current_status IN ('Claimed', 'Returned') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Cannot claim this item because it has already been claimed or returned.';
+    END IF;
+END$$
+
+-- Trigger 2: AFTER INSERT ON verification
+-- Automated state propagation: When an admin approves a claim, update found_item status and notify claimant.
+DROP TRIGGER IF EXISTS trg_after_verification_insert$$
+CREATE TRIGGER trg_after_verification_insert
+AFTER INSERT ON verification
+FOR EACH ROW
+BEGIN
+    DECLARE claimant_user_id INT;
+    DECLARE target_found_id INT;
+    DECLARE target_item_name VARCHAR(150);
+
+    -- Fetch claim details
+    SELECT user_id, found_item_id INTO claimant_user_id, target_found_id
+    FROM claim
+    WHERE claim_id = NEW.claim_id;
+
+    -- Fetch item name
+    SELECT item_name INTO target_item_name
+    FROM found_item
+    WHERE found_item_id = target_found_id;
+
+    IF NEW.status = 'Approved' THEN
+        -- 1. Synchronize the claim status
+        UPDATE claim 
+        SET status = 'Approved' 
+        WHERE claim_id = NEW.claim_id;
+
+        -- 2. Mark the found item as Claimed
+        UPDATE found_item 
+        SET status = 'Claimed' 
+        WHERE found_item_id = target_found_id;
+
+        -- 3. Automatically dispatch notification to the claimant
+        INSERT INTO notification (user_id, message, status)
+        VALUES (
+            claimant_user_id,
+            CONCAT('Congratulations! Your claim for item "', target_item_name, '" was APPROVED. Please visit the Campus Office with ID proof.'),
+            'Unread'
+        );
+    ELSEIF NEW.status = 'Rejected' THEN
+        -- Synchronize claim status
+        UPDATE claim 
+        SET status = 'Rejected' 
+        WHERE claim_id = NEW.claim_id;
+
+        -- Notify claimant about rejection
+        INSERT INTO notification (user_id, message, status)
+        VALUES (
+            claimant_user_id,
+            CONCAT('Update on your claim for "', target_item_name, '": The claim was rejected. Remarks: ', IFNULL(NEW.remarks, 'No remarks provided.')),
+            'Unread'
+        );
+    END IF;
+END$$
+
+-- Trigger 3: AFTER INSERT ON user
+-- Automatically creates a welcome notification row for newly registered campus users.
+DROP TRIGGER IF EXISTS trg_user_welcome_notification$$
+CREATE TRIGGER trg_user_welcome_notification
+AFTER INSERT ON `user`
+FOR EACH ROW
+BEGIN
+    INSERT INTO notification (user_id, message, status)
+    VALUES (
+        NEW.user_id,
+        CONCAT('Welcome to Campus Lost & Found Network, ', NEW.name, '! Report any lost or found items to get started.'),
+        'Unread'
+    );
+END$$
+
+DELIMITER ;

@@ -156,3 +156,127 @@ JOIN claim cl ON v.claim_id = cl.claim_id
 JOIN `user` u ON cl.user_id = u.user_id
 JOIN found_item f ON cl.found_item_id = f.found_item_id
 ORDER BY v.verification_date DESC;
+
+
+-- ==========================================================
+-- 5. DATABASE VIEWS DEMONSTRATION
+-- ==========================================================
+
+-- 5.1 Query the Active Lost Items View (Simplified projection without passwords)
+SELECT * FROM v_active_lost_items
+ORDER BY date_lost DESC
+LIMIT 10;
+
+-- 5.2 Query the Active Found Items View (Ready for claim matching)
+SELECT * FROM v_active_found_items
+WHERE campus_zone = 'Main Campus';
+
+-- 5.3 Query the Claims & Verification Audit View
+SELECT 
+    claim_id,
+    item_claimed,
+    claimant_name,
+    claim_status,
+    admin_decision,
+    verified_by
+FROM v_claims_dashboard;
+
+-- 5.4 Query the Campus Hotspots Analytics View
+SELECT 
+    location_name,
+    campus_zone,
+    total_lost_reports,
+    total_found_reports,
+    (total_lost_reports + total_found_reports) AS total_incidents
+FROM v_campus_hotspots
+ORDER BY total_incidents DESC;
+
+
+-- ==========================================================
+-- 6. COMPLETE SQL SUB-LANGUAGES (DDL, DML, TCL, DCL)
+-- ==========================================================
+
+-- ----------------------------------------------------------
+-- 6.1 DDL (Data Definition Language)
+-- Creates, modifies, and alters database structure and schemas
+-- ----------------------------------------------------------
+
+-- Example: Add an optional index or modify table schema
+ALTER TABLE `lost_item` 
+ADD INDEX idx_lost_date (`date_lost`);
+
+-- Example: Drop an index (schema modification)
+-- ALTER TABLE `lost_item` DROP INDEX idx_lost_date;
+
+
+-- ----------------------------------------------------------
+-- 6.2 DML (Data Manipulation Language)
+-- Inserts, selects, updates, and deletes row-level records
+-- ----------------------------------------------------------
+
+-- INSERT:
+-- INSERT INTO `location` (`location_name`, `city`, `address`) 
+-- VALUES ('Innovation Hub', 'Tech Quad', 'Level 2 Maker Space');
+
+-- UPDATE:
+-- UPDATE `found_item` 
+-- SET `storage_location` = 'Security Locker B-12' 
+-- WHERE `found_item_id` = 1;
+
+-- DELETE:
+-- DELETE FROM `notification` 
+-- WHERE `status` = 'Read' AND `notification_date` < NOW() - INTERVAL 30 DAY;
+
+
+-- ----------------------------------------------------------
+-- 6.3 TCL (Transaction Control Language)
+-- Manages atomic transactional boundaries, savepoints, and rollbacks
+-- ----------------------------------------------------------
+
+-- Demonstration of an ACID-compliant Atomic Claim Verification Transaction:
+START TRANSACTION;
+
+-- Step 1: Record admin verification decision
+INSERT INTO `verification` (`claim_id`, `admin_id`, `remarks`, `status`)
+VALUES (1, 1, 'Student ID card matched photo and serial number.', 'Approved');
+
+-- Step 2: Establish a transactional savepoint
+SAVEPOINT claim_approved;
+
+-- Step 3: Update item status to Returned
+UPDATE `found_item`
+SET `status` = 'Returned'
+WHERE `found_item_id` = (SELECT found_item_id FROM claim WHERE claim_id = 1);
+
+-- Step 4: Finalize and commit all changes permanently
+COMMIT;
+
+-- Note: If any validation fails, we can rollback:
+-- ROLLBACK TO SAVEPOINT claim_approved;
+-- or completely:
+-- ROLLBACK;
+
+
+-- ----------------------------------------------------------
+-- 6.4 DCL (Data Control Language)
+-- Manages privileges, permissions, and security roles
+-- ----------------------------------------------------------
+
+-- Create a restricted application user for production web backend
+CREATE USER IF NOT EXISTS 'lf_web_app'@'%' IDENTIFIED BY 'StrongAppPassword2026!';
+
+-- GRANT: Grant least-privilege DML access only on this database
+GRANT SELECT, INSERT, UPDATE, DELETE ON lost_and_found_db.* TO 'lf_web_app'@'%';
+
+-- Create an auditor account with read-only access to views
+CREATE USER IF NOT EXISTS 'lf_auditor'@'%' IDENTIFIED BY 'AuditViewOnly2026!';
+
+-- GRANT: Allow the auditor to ONLY read specific aggregated views
+GRANT SELECT ON lost_and_found_db.v_claims_dashboard TO 'lf_auditor'@'%';
+GRANT SELECT ON lost_and_found_db.v_campus_hotspots TO 'lf_auditor'@'%';
+
+-- REVOKE: Demonstrate revoking DELETE privileges to prevent accidental data loss
+REVOKE DELETE ON lost_and_found_db.* FROM 'lf_web_app'@'%';
+
+-- Flush privilege cache to enforce immediate updates
+FLUSH PRIVILEGES;
