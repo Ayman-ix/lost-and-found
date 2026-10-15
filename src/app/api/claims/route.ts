@@ -124,6 +124,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Found item not found.' }, { status: 404 });
     }
 
+    // Defensive check: prevent claims on items already claimed or returned
+    if (foundItem.status === 'Claimed' || foundItem.status === 'Returned') {
+      return NextResponse.json(
+        { error: 'This item has already been claimed or returned and is no longer open for new claims.' },
+        { status: 400 }
+      );
+    }
+
     // Prevent user from claiming an item they reported as found
     if (foundItem.user_id === session.userId) {
       return NextResponse.json(

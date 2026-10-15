@@ -211,11 +211,11 @@ INSERT INTO `location` (`location_id`, `location_name`, `city`, `address`) VALUE
 (8, 'Administration Building', 'Main Campus', 'Ground Floor Information Desk')
 ON DUPLICATE KEY UPDATE `location_name` = VALUES(`location_name`);
 
--- Default Admin User (Password: admin123)
--- bcrypt hash for 'admin123'
+-- Default Campus Administrator (Password: AdminSecure2026!)
+-- bcrypt hash for 'AdminSecure2026!' (Cost: 10)
 INSERT INTO `admin` (`admin_id`, `name`, `email`, `password`) VALUES
-(1, 'Campus Administrator', 'admin@campus.edu', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+(1, 'Campus Administrator', 'admin@campus.edu', '$2b$10$kRCY/Y/Mp.vs.l0FN/Jgl.Sj3vN/sX3mCghcpawAMhX9bBChX8DoC')
+ON DUPLICATE KEY UPDATE `password` = VALUES(`password`), `name` = VALUES(`name`);
 
 
 -- ==========================================================

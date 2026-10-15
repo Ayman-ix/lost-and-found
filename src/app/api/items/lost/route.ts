@@ -60,15 +60,15 @@ export async function GET(request: Request) {
       params.push(pattern, pattern, pattern, pattern);
     }
 
-    sql += ` ORDER BY l.created_at DESC`;
-
     const rows = await query<any>(sql, params);
+    const session = await getSession();
 
     // Group rows by lost_item_id to collect images array
     const itemMap = new Map<number, any>();
 
     for (const row of rows) {
       if (!itemMap.has(row.lost_item_id)) {
+        const canViewEmail = session && (session.role === 'admin' || session.userId === row.user_id);
         itemMap.set(row.lost_item_id, {
           lost_item_id: row.lost_item_id,
           item_name: row.item_name,
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
           user: {
             user_id: row.user_id,
             name: row.user_name,
-            email: row.user_email,
+            email: canViewEmail ? row.user_email : undefined,
           },
           category: {
             category_id: row.category_id,

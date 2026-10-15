@@ -73,4 +73,26 @@ export async function execute(sql: string, params: any[] = []): Promise<ResultSe
   return result;
 }
 
+/**
+ * Execute a multi-statement callback within a single atomic ACID transaction.
+ * Automatically commits on success and rolls back on any error.
+ */
+export async function withTransaction<T>(
+  callback: (conn: mysql.PoolConnection) => Promise<T>
+): Promise<T> {
+  const db = getDbPool();
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const result = await callback(conn);
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
 export { pool };

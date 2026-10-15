@@ -1,27 +1,19 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-// GET /api/test
-// Tests the MySQL database connection
+// GET /api/test - Lightweight health check for deployment verification
 export async function GET() {
   try {
-    const categories = await query('SELECT * FROM category ORDER BY category_id');
-
+    await query('SELECT 1');
     return NextResponse.json({
-      success: true,
-      engine: 'MySQL',
-      message: 'MySQL database connection successful!',
-      categories,
+      status: 'healthy',
+      database: 'connected',
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database connection error';
+  } catch (err) {
+    console.error('Health check failed:', err);
     return NextResponse.json(
-      {
-        success: false,
-        engine: 'MySQL',
-        error: message,
-      },
-      { status: 500 }
+      { status: 'unhealthy', error: 'Database service unavailable' },
+      { status: 503 }
     );
   }
 }

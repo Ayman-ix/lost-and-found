@@ -24,32 +24,7 @@ export async function POST(request: Request) {
         [trimmedEmail]
       );
 
-      // If no admin exists in the database and they are trying to log in with default credentials, seed it
-      if (!adminRecord && trimmedEmail === 'admin@campus.edu' && password === 'admin123') {
-        const defaultHashed = await bcrypt.hash('admin123', 10);
-        const result = await execute(
-          'INSERT INTO `admin` (name, email, password) VALUES (?, ?, ?)',
-          ['Campus Administrator', 'admin@campus.edu', defaultHashed]
-        );
 
-        const sessionToken = await createSession({
-          userId: result.insertId,
-          name: 'Campus Administrator',
-          email: 'admin@campus.edu',
-          role: 'admin',
-        });
-        await setSessionCookie(sessionToken);
-
-        return NextResponse.json({
-          success: true,
-          user: {
-            userId: result.insertId,
-            name: 'Campus Administrator',
-            email: 'admin@campus.edu',
-            role: 'admin',
-          },
-        });
-      }
 
       if (!adminRecord) {
         return NextResponse.json(

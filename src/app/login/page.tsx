@@ -16,16 +16,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleFillDemo = (targetRole: 'user' | 'admin') => {
-    setRole(targetRole);
-    if (targetRole === 'admin') {
-      setEmail('admin@campus.edu');
-      setPassword('admin123');
-    } else {
-      setEmail('alex@campus.edu');
-      setPassword('password123');
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,28 +175,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Fill Buttons */}
-          <div className="mt-6 border-t border-[#ECECEC] dark:border-white/[0.08] pt-4">
-            <p className="text-[11px] font-bold text-[#555555] dark:text-[#8E8C87] uppercase tracking-wider mb-2">
-              Quick demo credentials (for project evaluation):
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleFillDemo('user')}
-                className="flex-1 rounded-lg border border-[#ECECEC] dark:border-white/[0.08] bg-[#F8F9FA] dark:bg-[#1A1A1A] px-2 py-1.5 text-[11px] font-bold text-[#231F20] dark:text-[#F0EFE9] hover:bg-[#FFF4ED] dark:hover:bg-[#E8613A]/15 hover:text-[#D3632D] dark:hover:text-[#E8613A]"
-              >
-                Fill Student Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFillDemo('admin')}
-                className="flex-1 rounded-lg border border-[#D3632D]/40 dark:border-[#E8613A]/40 bg-[#FFF4ED] dark:bg-[#E8613A]/15 px-2 py-1.5 text-[11px] font-bold text-[#D3632D] dark:text-[#E8613A] hover:bg-[#FFE8D6] dark:hover:bg-[#E8613A]/25"
-              >
-                Fill Admin Demo
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* Footer Link */}

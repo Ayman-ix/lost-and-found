@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { queryOne, execute } from '@/lib/db';
+import { queryOne, withTransaction } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
 export async function POST(request: Request) {
@@ -32,50 +32,89 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
     }
 
-    // 2. Insert or update VERIFICATION table (1:1 with claim)
-    await execute(
-      `INSERT INTO verification (claim_id, admin_id, remarks, status, verification_date)
-       VALUES (?, ?, ?, ?, NOW())
-       ON DUPLICATE KEY UPDATE 
-         admin_id = VALUES(admin_id),
-         remarks = VALUES(remarks),
-         status = VALUES(status),
-         verification_date = NOW()`,
-      [claimId, session.userId, remarks?.trim() || null, status]
-    );
-
-    // 3. Update CLAIM status
-    await execute('UPDATE claim SET status = ? WHERE claim_id = ?', [status, claimId]);
-
-    // 4. If approved, update FOUND_ITEM status to 'Returned'
-    if (status === 'Approved') {
-      await execute("UPDATE found_item SET status = 'Returned' WHERE found_item_id = ?", [
-        claim.found_item_id,
-      ]);
-    }
-
-    // 5. Notify the claimant
     const itemName = claim.item_name || 'claimed item';
-    const notifMessage =
-      status === 'Approved'
-        ? `Congratulations! Your ownership claim for "${itemName}" has been APPROVED. Remarks: ${
-            remarks || 'Verified by admin.'
-          } Please visit the campus recovery office to retrieve your item.`
-        : `Your claim for "${itemName}" was reviewed and REJECTED. Remarks: ${
-            remarks || 'Insufficient proof provided.'
-          }`;
 
-    await execute(
-      'INSERT INTO notification (user_id, message, status) VALUES (?, ?, ?)',
-      [claim.user_id, notifMessage, 'Unread']
-    );
+    // Execute atomic transaction for all state mutations
+    await withTransaction(async (conn) => {
+      // 2. Insert or update VERIFICATION table (1:1 with claim)
+      await conn.execute(
+        `INSERT INTO verification (claim_id, admin_id, remarks, status, verification_date)
+         VALUES (?, ?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE 
+           admin_id = VALUES(admin_id),
+           remarks = VALUES(remarks),
+           status = VALUES(status),
+           verification_date = NOW()`,
+        [claimId, session.userId, remarks?.trim() || null, status]
+      );
+
+      // 3. Update primary CLAIM status
+      await conn.execute('UPDATE claim SET status = ? WHERE claim_id = ?', [status, claimId]);
+
+      if (status === 'Approved') {
+        // 4. Update FOUND_ITEM status to 'Claimed'
+        await conn.execute("UPDATE found_item SET status = 'Claimed' WHERE found_item_id = ?", [
+          claim.found_item_id,
+        ]);
+
+        // 5. Automatically reject any other pending claims on the same found item
+        const [competingClaims]: any = await conn.execute(
+          `SELECT claim_id, user_id FROM claim 
+           WHERE found_item_id = ? AND claim_id != ? AND status = 'Pending'`,
+          [claim.found_item_id, claimId]
+        );
+
+        if (competingClaims && competingClaims.length > 0) {
+          await conn.execute(
+            `UPDATE claim SET status = 'Rejected' 
+             WHERE found_item_id = ? AND claim_id != ? AND status = 'Pending'`,
+            [claim.found_item_id, claimId]
+          );
+
+          for (const other of competingClaims) {
+            await conn.execute(
+              `INSERT INTO notification (user_id, message, status) VALUES (?, ?, 'Unread')`,
+              [
+                other.user_id,
+                `Your claim for "${itemName}" was rejected because another claimant's ownership proof was verified and approved.`,
+              ]
+            );
+          }
+        }
+
+        // 6. Notify the approved claimant
+        await conn.execute(
+          `INSERT INTO notification (user_id, message, status) VALUES (?, ?, 'Unread')`,
+          [
+            claim.user_id,
+            `Congratulations! Your claim for "${itemName}" has been APPROVED. Remarks: ${
+              remarks || 'Verified by admin.'
+            } Please visit the campus recovery office with valid student/faculty ID.`,
+          ]
+        );
+      } else {
+        // Notify the rejected claimant
+        await conn.execute(
+          `INSERT INTO notification (user_id, message, status) VALUES (?, ?, 'Unread')`,
+          [
+            claim.user_id,
+            `Your claim for "${itemName}" was reviewed and REJECTED. Remarks: ${
+              remarks || 'Insufficient proof provided.'
+            }`,
+          ]
+        );
+      }
+    });
 
     return NextResponse.json({
       success: true,
       message: `Claim #${claimId} has been successfully ${status.toLowerCase()}.`,
     });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error processing verification';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('Error processing admin verification:', err);
+    return NextResponse.json(
+      { error: 'An unexpected database error occurred while processing verification.' },
+      { status: 500 }
+    );
   }
 }

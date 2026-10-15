@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
+import { getSession } from '@/lib/session';
 
 export async function GET(
   _request: Request,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getSession();
     const params = await props.params;
     const rawId = params.id; // e.g. "lost-1" or "found-2" or "1"
 
@@ -57,6 +59,8 @@ export async function GET(
         return NextResponse.json({ error: 'Lost item not found' }, { status: 404 });
       }
 
+      const isOwnerOrAdmin = session && (session.role === 'admin' || session.userId === itemRow.user_id);
+
       const images = await query<any>(
         `SELECT image_id, image_url FROM item_image WHERE lost_item_id = ?`,
         [numericId]
@@ -74,7 +78,7 @@ export async function GET(
         user: {
           user_id: itemRow.user_id,
           name: itemRow.user_name,
-          email: itemRow.user_email,
+          email: isOwnerOrAdmin ? itemRow.user_email : undefined,
         },
         category: {
           category_id: itemRow.category_id,
@@ -88,43 +92,46 @@ export async function GET(
         images,
       };
 
-      // Fetch potential matches for this lost item
-      const matchRows = await query<any>(
-        `SELECT 
-          m.match_id,
-          m.match_score,
-          m.match_status,
-          f.found_item_id,
-          f.item_name,
-          f.brand,
-          f.color,
-          f.date_found,
-          f.status AS found_status,
-          loc.location_name
-        FROM potential_match m
-        JOIN found_item f ON m.found_item_id = f.found_item_id
-        LEFT JOIN location loc ON f.location_id = loc.location_id
-        WHERE m.lost_item_id = ?
-        ORDER BY m.match_score DESC`,
-        [numericId]
-      );
+      // Potential matches are only visible to the item owner or admin (Fraud prevention)
+      let matches: any[] = [];
+      if (isOwnerOrAdmin) {
+        const matchRows = await query<any>(
+          `SELECT 
+            m.match_id,
+            m.match_score,
+            m.match_status,
+            f.found_item_id,
+            f.item_name,
+            f.brand,
+            f.color,
+            f.date_found,
+            f.status AS found_status,
+            loc.location_name
+          FROM potential_match m
+          JOIN found_item f ON m.found_item_id = f.found_item_id
+          LEFT JOIN location loc ON f.location_id = loc.location_id
+          WHERE m.lost_item_id = ?
+          ORDER BY m.match_score DESC`,
+          [numericId]
+        );
 
-      const matches = matchRows.map((m) => ({
-        match_id: m.match_id,
-        match_score: m.match_score,
-        match_status: m.match_status,
-        found_item: {
-          found_item_id: m.found_item_id,
-          item_name: m.item_name,
-          brand: m.brand,
-          color: m.color,
-          date_found: m.date_found,
-          status: m.found_status,
-          location: {
-            location_name: m.location_name,
+        matches = matchRows.map((m) => ({
+          match_id: m.match_id,
+          match_score: m.match_score,
+          match_status: m.match_status,
+          found_item: {
+            found_item_id: m.found_item_id,
+            item_name: m.item_name,
+            brand: m.brand,
+            color: m.color,
+            date_found: m.date_found,
+            status: m.found_status,
+            location: {
+              location_name: m.location_name,
+            },
           },
-        },
-      }));
+        }));
+      }
 
       return NextResponse.json({
         type: 'lost',
@@ -168,6 +175,8 @@ export async function GET(
         [numericId]
       );
 
+      const isFinderOrAdmin = session && (session.role === 'admin' || session.userId === itemRow.user_id);
+
       const item = {
         found_item_id: itemRow.found_item_id,
         item_name: itemRow.item_name,
@@ -181,7 +190,7 @@ export async function GET(
         user: {
           user_id: itemRow.user_id,
           name: itemRow.user_name,
-          email: itemRow.user_email,
+          email: isFinderOrAdmin ? itemRow.user_email : undefined,
         },
         category: {
           category_id: itemRow.category_id,
@@ -195,43 +204,46 @@ export async function GET(
         images,
       };
 
-      // Fetch potential matches for this found item
-      const matchRows = await query<any>(
-        `SELECT 
-          m.match_id,
-          m.match_score,
-          m.match_status,
-          l.lost_item_id,
-          l.item_name,
-          l.brand,
-          l.color,
-          l.date_lost,
-          l.status AS lost_status,
-          loc.location_name
-        FROM potential_match m
-        JOIN lost_item l ON m.lost_item_id = l.lost_item_id
-        LEFT JOIN location loc ON l.location_id = loc.location_id
-        WHERE m.found_item_id = ?
-        ORDER BY m.match_score DESC`,
-        [numericId]
-      );
+      // Potential matches are only visible to the finder or admin
+      let matches: any[] = [];
+      if (isFinderOrAdmin) {
+        const matchRows = await query<any>(
+          `SELECT 
+            m.match_id,
+            m.match_score,
+            m.match_status,
+            l.lost_item_id,
+            l.item_name,
+            l.brand,
+            l.color,
+            l.date_lost,
+            l.status AS lost_status,
+            loc.location_name
+          FROM potential_match m
+          JOIN lost_item l ON m.lost_item_id = l.lost_item_id
+          LEFT JOIN location loc ON l.location_id = loc.location_id
+          WHERE m.found_item_id = ?
+          ORDER BY m.match_score DESC`,
+          [numericId]
+        );
 
-      const matches = matchRows.map((m) => ({
-        match_id: m.match_id,
-        match_score: m.match_score,
-        match_status: m.match_status,
-        lost_item: {
-          lost_item_id: m.lost_item_id,
-          item_name: m.item_name,
-          brand: m.brand,
-          color: m.color,
-          date_lost: m.date_lost,
-          status: m.lost_status,
-          location: {
-            location_name: m.location_name,
+        matches = matchRows.map((m) => ({
+          match_id: m.match_id,
+          match_score: m.match_score,
+          match_status: m.match_status,
+          lost_item: {
+            lost_item_id: m.lost_item_id,
+            item_name: m.item_name,
+            brand: m.brand,
+            color: m.color,
+            date_lost: m.date_lost,
+            status: m.lost_status,
+            location: {
+              location_name: m.location_name,
+            },
           },
-        },
-      }));
+        }));
+      }
 
       return NextResponse.json({
         type: 'found',

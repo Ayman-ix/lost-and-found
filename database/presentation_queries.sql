@@ -138,7 +138,7 @@ SELECT
     (SELECT COUNT(*) FROM lost_item WHERE user_id = u.user_id) AS reported_lost_count,
     (SELECT COUNT(*) FROM found_item WHERE user_id = u.user_id) AS reported_found_count
 FROM `user` u
-HAVING reported_lost_count > 0 OR reported_found_count > 0;
+HAVING reported_lost_count > 0 AND reported_found_count > 0;
 
 -- 4.3 Admin Verification Audit Trail (Auditing who approved what claim)
 SELECT 

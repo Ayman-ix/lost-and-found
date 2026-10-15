@@ -178,7 +178,7 @@ export default function HomePage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by keyword, department, location..."
+                placeholder="Search by keyword, category, location, color..."
                 className="w-full bg-white dark:bg-[#141414] py-4 pl-12 pr-32 text-sm text-[#231F20] dark:text-[#F0EFE9] placeholder:text-[#808080] dark:placeholder:text-[#7A7874] focus:outline-none"
               />
               <button
@@ -247,7 +247,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-[#231F20] dark:text-[#F0EFE9]">Browse Lost Items Directory</h3>
               <p className="mt-2 text-sm text-[#555555] dark:text-[#8E8C87] leading-relaxed">
-                Explore items reported lost by students, faculty, and campus staff. Filter by category, department, and date.
+                Explore items reported lost by students, faculty, and campus staff. Filter by category, location, and date.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-[#ECECEC] dark:border-white/[0.08] flex items-center justify-between">
@@ -416,7 +416,7 @@ export default function HomePage() {
               </div>
               <h4 className="font-bold text-[#231F20] dark:text-[#F0EFE9] text-base">Report Item Details</h4>
               <p className="text-sm text-[#555555] dark:text-[#8E8C87] leading-relaxed">
-                Submit structured campus records with category, campus location/hostel, date, brand, color, and photos.
+                Submit structured campus records with category, campus location, date, brand, color, and photos.
               </p>
             </div>
 
@@ -426,7 +426,7 @@ export default function HomePage() {
               </div>
               <h4 className="font-bold text-[#231F20] dark:text-[#F0EFE9] text-base">Automated Match Scoring</h4>
               <p className="text-sm text-[#555555] dark:text-[#8E8C87] leading-relaxed">
-                The database computes multi-attribute match scores (Category, Brand, Campus Location) and notifies relevant users.
+                The algorithm computes multi-attribute match scores (Category, Brand, Color, Location, and Date Proximity) and alerts matching users.
               </p>
             </div>
 
